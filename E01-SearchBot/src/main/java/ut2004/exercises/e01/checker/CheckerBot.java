@@ -242,9 +242,10 @@ public class CheckerBot extends UT2004BotModuleController {
 		if (iteration >= 2) {
 			sayGlobal("EXERCISE FINISHED");
 			state = 7;
-		}
-		++iteration;
-		body.getAction().respawn();
+		} else {
+            ++iteration;
+            body.getAction().respawn();
+        }
 	}
 
 
