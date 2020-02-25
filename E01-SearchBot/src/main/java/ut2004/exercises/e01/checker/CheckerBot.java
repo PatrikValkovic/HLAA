@@ -46,24 +46,24 @@ public class CheckerBot extends UT2004BotModuleController {
      * Bot is ready to be spawned into the game; configure last minute stuff in here
      *
      * @param gameInfo information about the game type
-     * @param currentConfig information about configuration
+     * @param config information about configuration
      * @param init information about configuration
      */
     @Override
-    public void botInitialized(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init) {
+    public void botInitialized(GameInfo gameInfo, ConfigChange config, InitedMessage init) {
     	// ignore any Yylex whining...
     	bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
     }
-    
+
     /**
      * This method is called only once, right before actual logic() method is called for the first time.
      */
     @Override
     public void beforeFirstLogic() {
     }
-    
+
     /**
-     * Say something through the global channel + log it into the console...    
+     * Say something through the global channel + log it into the console...
      * @param msg
      */
     private void sayGlobal(String msg) {
@@ -72,28 +72,28 @@ public class CheckerBot extends UT2004BotModuleController {
     	// And user log as well
     	log.info(msg);
     }
-    
+
     @EventListener(eventClass=GlobalChat.class)
     public void chatReceived(GlobalChat msg) {
     	if (msg.getId() == info.getId()) return;
-    	if (fixedPlayer == null) return;    	
+    	if (fixedPlayer == null) return;
     	if (msg.getId().equals(fixedPlayer.getId())) {
     		lastPlayerMessage = msg.getText();
     	}
-    }   
-    
+    }
+
     private int state = 0;
-    
+
     private Player fixedPlayer = null;
-    
+
     private String lastPlayerMessage = null;
-    
+
     private int lastHealth = 100;
-    
+
     private long lastHit = 0;
-    
+
     private int iteration = 0;
-    
+
     @Override
     public void botKilled(BotKilled event) {
     	state = 0;
@@ -102,7 +102,7 @@ public class CheckerBot extends UT2004BotModuleController {
     	lastHealth = 100;
     	lastHit = 0;
     }
-    
+
     @EventListener(eventClass=Spawn.class)
     private void botSpawned(Spawn event) {
     	state = 0;
@@ -120,7 +120,7 @@ public class CheckerBot extends UT2004BotModuleController {
     	if (info.atLocation("PlayerStart0") || info.atLocation("PlayerStart7")) {
     		body.getAction().respawn();
     		return;
-    	}    	
+    	}
     	switch (state) {
     	// 1. find the bot and approach him (get near him ... distance < 200)
     	case 0: waitForPlayer(); break;
@@ -137,7 +137,8 @@ public class CheckerBot extends UT2004BotModuleController {
     	// 7. then CheckerBot respawns itself
     	// 8. repeat 1-6 until CheckerBot replies with "EXERCISE FINISHED!"
     	case 6: iterateOrFinish(); break;
-		case 7: finnish(); break;
+    	// die
+		case 7: die(); break;
     	}
     }
 
@@ -150,12 +151,12 @@ public class CheckerBot extends UT2004BotModuleController {
 				log.info("STATE " + state + ": fixing player " + players.getNearestVisiblePlayer());
 				fixedPlayer = players.getNearestVisiblePlayer();
 				log.info("STATE " + state + ": switching to state 1");
-				state = 1;	
+				state = 1;
 				return;
 			}
 			return;
 		}
-		
+
 		log.info("STATE " + state + ": searching for player");
 		body.getLocomotion().turnHorizontal(30);
 	}
@@ -214,14 +215,14 @@ public class CheckerBot extends UT2004BotModuleController {
 			lastHit = System.currentTimeMillis();
 			lastHealth = info.getHealth();
 		}
-		
+
 		if (System.currentTimeMillis() - lastHit > 1000) {
 			if (info.getHealth() >= 100) {
 				sayGlobal("You should have slapped me!");
 				reset();
 				return;
 			}
-			
+
 			log.info("STATE " + state + ": got hit!");
 			log.info("STATE " + state + ": switching to state 5");
 			state = 5;
@@ -236,18 +237,18 @@ public class CheckerBot extends UT2004BotModuleController {
 		state = 6;
 	}
 
+
 	private void iterateOrFinish() {
 		if (iteration >= 2) {
 			sayGlobal("EXERCISE FINISHED");
 			state = 7;
 		}
-		else {
-			++iteration;
-			body.getAction().respawn();
-		}
+		++iteration;
+		body.getAction().respawn();
 	}
 
-	private void finnish(){
+
+	public void die() {
 		throw new RuntimeException("CONGRATULATIONS!");
 	}
 	

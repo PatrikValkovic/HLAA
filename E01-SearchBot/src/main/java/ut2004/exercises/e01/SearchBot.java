@@ -87,10 +87,6 @@ public class SearchBot extends UT2004BotModuleController {
         log.info(msg);
     }
 
-    private String received = "";
-    private boolean receiveTimeout = false;
-    private int timeoutCounter = 0;
-
     private void tickTimeout() {
         timeoutCounter++;
         if (timeoutCounter >= 16)
@@ -102,12 +98,24 @@ public class SearchBot extends UT2004BotModuleController {
         receiveTimeout = false;
     }
 
+
+    private boolean receiveTimeout = false;
+    private int timeoutCounter = 0;
+    private boolean cool_received = false;
+    private boolean congrats_receive = false;
+    private String received = "";
     @EventListener(eventClass = GlobalChat.class)
     public void chatReceived(GlobalChat msg) {
         if (msg.getText().toLowerCase().equals("reset")) {
             // CheckerBot reset itself...
         }
-        received = msg.getText();
+        if(msg.getText().equals("COOL!")){
+            cool_received = true;
+        }
+        if(msg.getText().equals("EXERCISE FINISHED")){
+            congrats_receive = true;
+        }
+        this.received = msg.getText();
     }
 
     private boolean damaged = false;
@@ -143,7 +151,7 @@ public class SearchBot extends UT2004BotModuleController {
         Location loc = new Location(0, 0, 0);
         weaponry.changeWeapon(UT2004ItemType.ASSAULT_RIFLE);
         switch (state) {
-            case 0: //navigate to random point
+            case 0: // navigate to random point
                 if (!navigation.isNavigating())
                     navigation.navigate(this.navPoints.getRandomNavPoint());
                 if (players.canSeePlayers()) {
@@ -151,18 +159,17 @@ public class SearchBot extends UT2004BotModuleController {
                     navigation.navigate(loc);
                     log.info("Bot see player on " + loc.toString());
                 }
-                if (loc.getDistance(bot.getLocation()) < 200) {
+                if (loc.getDistance(bot.getLocation()) < 190) {
                     navigation.stopNavigation();
                     log.info("Bot is close enough");
                     state = 1;
                 }
-                if (received.equals("EXERCISE FINISHED")) {
+                if (congrats_receive) {
                     log.info("Received info about success");
                     state = 7;
                 }
                 break;
-            case 1: //nearby player
-                //body.getLocomotion().turnTo(loc);
+            case 1: // nearby player
                 this.sayGlobal("Hello!");
                 resetTimeout();
                 state = 2;
@@ -175,10 +182,11 @@ public class SearchBot extends UT2004BotModuleController {
                 }
                 else if (receiveTimeout) {
                     log.warning("Answer didn't received, repeating.");
+                    navigation.navigate(navPoints.getRandomNavPoint());
                     state = 0;
                 }
                 break;
-            case 3:
+            case 3: // say back
                 this.sayGlobal("I'm not your friend.");
                 state = 4;
                 break;
@@ -208,8 +216,10 @@ public class SearchBot extends UT2004BotModuleController {
                 break;
             case 6:
                 tickTimeout();
-                if (received.equals("COOL!")){
+                if (cool_received){
                     log.info("Success in the turn, repeating");
+                    cool_received = false;
+                    resetTimeout();
                     state = 0;
                 }
                 else if(receiveTimeout) {
