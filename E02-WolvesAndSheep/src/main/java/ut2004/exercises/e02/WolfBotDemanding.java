@@ -11,7 +11,12 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.*;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.exception.PogamutException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import ut2004.exercises.e02.valkovic.*;
 
@@ -25,7 +30,7 @@ import ut2004.exercises.e02.valkovic.*;
  * <p>
  * Just use {@link AdvancedLocomotion#moveTo(cz.cuni.amis.pogamut.base3d.worldview.object.ILocated)},
  * {@link AdvancedLocomotion#strafeTo(cz.cuni.amis.pogamut.base3d.worldview.object.ILocated, cz.cuni.amis.pogamut.base3d.worldview.object.ILocated)}
- * {@link AdvancedLocomotion#jump()} and {@link AdvancedLocomotion#dodge(Location, boolean)}
+ * {@link AdvancedLocomotion#jump()} and {@link AdvancedLocomotion#dodge(cz.cuni.amis.pogamut.base3d.worldview.object.Location, boolean)}
  * and alikes to move your bot!
  * <p>
  * To start scenario:
@@ -49,24 +54,27 @@ import ut2004.exercises.e02.valkovic.*;
  */
 @SuppressWarnings("rawtypes")
 @AgentScoped
-public class WolfBot extends UT2004BotModuleController {
+public class WolfBotDemanding extends UT2004BotModuleController {
 
-    private static final int SPEED = 300;
-    private static final int PLAN_AHEAD = 6;
+    private static final int SPEED = 270;
+    private static final int PLAN_AHEAD = 8;
+    private static final int SIMULATE = 32;
     private static final int SCAN_ROTATION = 60;
-    private static final int TRIGGER_DISTANCE = 800;
+    private static final int TRIGGER_DISTANCE = 400;
+    private static final int AT_POINT_DISTANCE = 100;
     private static AtomicInteger INSTANCES_COUNT = new AtomicInteger(0);
 
-    private int _state = 0;
     private FPSCounter _fps = new FPSCounter();
-    String _otherWolf = null;
-    boolean _otherConfirmed = false;
+    private int _state = 0;
+    private NavigationModule _navModule;
     private InitialScan _initialScan = new InitialScan(SCAN_ROTATION);
-    private LocationEstimator _locationLocationEstimator = new LocationEstimator(SPEED, PLAN_AHEAD);
-
-
-    public WolfBot() {
-    }
+    private Map<String, Location> _lastKnownLocations = new HashMap<>(30, 0.6f);
+    private final Object _lastKNowLocationsMutex = new Object();
+    private PlanningThread _planningThreadInstance;
+    private Thread _planningThreadExecutor;
+    private int _alive = 12;
+    private Instant _roundStart = Instant.now();
+    private Instant _roundEnd;
 
     /**
      * Here we can modify initializing command for our bot, e.g., sets its name or skin.
@@ -102,12 +110,28 @@ public class WolfBot extends UT2004BotModuleController {
     public void beforeFirstLogic() {
         // enable manual spawning
         act.act(new Configuration().setManualSpawn(true));
+        // create markov chain
+        _navModule = new NavigationModule(this.navPoints.getNavPoints(), SPEED);
+        _navModule.preprocess(SIMULATE, PLAN_AHEAD);
     }
 
     @Override
     public void botKilled(BotKilled event) {
+        if(_planningThreadExecutor != null){
+            _planningThreadExecutor.interrupt();
+            _planningThreadExecutor = null;
+            _planningThreadInstance = null;
+        }
+        _alive = 12;
+        _roundStart = Instant.now();
         _state = 0;
-        _otherConfirmed = false;
+    }
+
+
+
+    @EventListener(eventClass=PlayerKilled.class)
+    public void playerKilled(PlayerKilled event) {
+        _alive--;
     }
 
 
@@ -123,6 +147,9 @@ public class WolfBot extends UT2004BotModuleController {
         // log.info(msg);
     }
 
+    String _otherWolf = null;
+    boolean _otherConfirmed = false;
+
     @EventListener(eventClass = GlobalChat.class)
     public void chatReceived(GlobalChat msg) {
         Utils.handleMessage(msg);
@@ -137,12 +164,18 @@ public class WolfBot extends UT2004BotModuleController {
             _otherConfirmed = true;
         }
         if(msg.getText().startsWith("Pos:")){
-            _locationLocationEstimator.addPlayer(msg.getName(), Utils.parseLocation(msg.getText().substring(4)), info.getName());
+            updateEntityLocation(msg.getName(), Utils.parseLocation(msg.getText().substring(4)));
         }
         if(msg.getText().startsWith("Sheep:")){
             String content = msg.getText().substring(6);
             String[] split = content.split(";", 2);
-            _locationLocationEstimator.addPlayer(split[0], Utils.parseLocation(split[1]), info.getName());
+            updateEntityLocation(split[0], Utils.parseLocation(split[1]));
+        }
+    }
+
+    private void updateEntityLocation(String name, Location loc){
+        synchronized (_lastKNowLocationsMutex) {
+            _lastKnownLocations.put(name, loc);
         }
     }
 
@@ -160,15 +193,32 @@ public class WolfBot extends UT2004BotModuleController {
             return;
         }
 
+        if(_planningThreadExecutor == null){
+            _planningThreadInstance = new PlanningThread(
+                    _navModule,
+                    _lastKnownLocations,
+                    _lastKNowLocationsMutex,
+                    log,
+                    PLAN_AHEAD
+            );
+            _planningThreadInstance.get_currentLocation().set(info.getLocation());
+            _planningThreadExecutor = new Thread(
+                    _planningThreadInstance,
+                    info.getName() + "_planningthread"
+            );
+            _planningThreadExecutor.start();
+        }
+        _planningThreadInstance.get_currentLocation().set(info.getLocation());
+
 
         // tell my position
         sayGlobal("Pos:" + info.getLocation());
         // tell positions of players
-        _locationLocationEstimator.addPlayer(info.getName(), bot.getLocation(), info.getName());
+        updateEntityLocation(info.getName(), bot.getLocation());
         for(Player sheep : players.getVisiblePlayers().values()){
             if(sheep.getId().getStringId().equals(_otherWolf))
                 continue;
-            _locationLocationEstimator.addPlayer(sheep.getName(), sheep.getLocation(), info.getName());
+            updateEntityLocation(sheep.getName(), sheep.getLocation());
             sayGlobal(String.format(
                     "Sheep:%s;%s",
                     sheep.getName(),
@@ -178,6 +228,11 @@ public class WolfBot extends UT2004BotModuleController {
 
         log.info("State: " + _state);
 
+        // planning result
+        AtomicReference<Location> targetLocation = _navModule.getNavLocation();
+
+        //if(_alive == 0)
+        //    _state = 98;
 
         if (_state == 0) { // find other wolfs
             sayGlobal("Wolf");
@@ -189,7 +244,7 @@ public class WolfBot extends UT2004BotModuleController {
             sayGlobal("WolfConfirm:" + _otherWolf);
             if (_otherConfirmed)
                 _state = 2;
-            //_planningThreadInstance.get_otherWolf().set(_otherWolf);
+            _planningThreadInstance.get_otherWolf().set(_otherWolf);
         }
         if(_state == 2){ // initial scan
             if(_initialScan.isDone())
@@ -198,6 +253,10 @@ public class WolfBot extends UT2004BotModuleController {
             _initialScan.rotationPerformed();
         }
         if(_state == 3) {// use Markov chain
+            if(targetLocation.get() != null) {
+                log.info("Using plan");
+                navigation.navigate(targetLocation.get());
+            }
             Player nearestSheep = null;
             if(players.getVisiblePlayers().size() > 0) {
                 nearestSheep = Utils.getNearestSheep(
@@ -208,12 +267,7 @@ public class WolfBot extends UT2004BotModuleController {
             if(nearestSheep != null && nearestSheep.getLocation().getDistance(info.getLocation()) < TRIGGER_DISTANCE) {
                 _state = 4;
             }
-            _locationLocationEstimator.estimateLocations();
-            navigation.navigate(_locationLocationEstimator.findNextNav(
-                    navPoints.getNavPoints().values(),
-                    PLAN_AHEAD
-            ));
-            /*else if (targetLocation.get() == null ||
+            else if (targetLocation.get() == null ||
                     Utils.distanceFrom(info.getLocation(), targetLocation.get()) < AT_POINT_DISTANCE
             ){
                 log.info("Not using plan");
@@ -222,7 +276,7 @@ public class WolfBot extends UT2004BotModuleController {
                     move.moveTo(nearestSheep.getLocation());
                 else
                     move.turnHorizontal(SCAN_ROTATION);
-            }*/
+            }
 
         }
         if(_state == 4){ // triggered
@@ -237,6 +291,22 @@ public class WolfBot extends UT2004BotModuleController {
             move.turnTo(nearestSheep);
             move.dodge(nearestSheep.getLocation().sub(info.getLocation()), true);
         }
+        if (_state == -1) { // old behavior
+            if (!players.canSeePlayers() ||
+                    _otherWolf.equals(players.getNearestVisiblePlayer().getName())) {
+                move.turnHorizontal(30);
+            } else {
+                navigation.stopNavigation();
+                navigation.navigate(players.getNearestVisiblePlayer());
+            }
+        }
+        if(_state == 98) { //win
+            _roundEnd = Instant.now();
+            _state = 99;
+        }
+        if(_state == 99) { //win
+            sayGlobal("We won in " + Duration.between(_roundEnd, _roundStart).toMillis() / 1000 + " s");
+        }
     }
 
     /**
@@ -247,7 +317,7 @@ public class WolfBot extends UT2004BotModuleController {
     @SuppressWarnings({"rawtypes"})
     public static void main(String[] args) throws PogamutException {
         new UT2004BotRunner(      // class that wrapps logic for bots executions, suitable to run single bot in single JVM
-                WolfBot.class,  // which UT2004BotController it should instantiate
+                WolfBotDemanding.class,  // which UT2004BotController it should instantiate
                 "WolfBot"       // what name the runner should be using
         ).setMain(true)           // tells runner that is is executed inside MAIN method, thus it may block the thread and watch whether agent/s are correctly executed
          .startAgents(2);         // tells the runner to start 1 agent

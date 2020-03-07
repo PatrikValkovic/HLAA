@@ -38,4 +38,15 @@ public class Utils {
         return loc1.getDistance(loc2);
     }
 
+
+    public static Location parseLocation(String text){
+        String content = text.substring(1, text.length() - 2);
+        String[] locations = content.split(";");
+        return new Location(
+                Double.parseDouble(locations[0]),
+                Double.parseDouble(locations[1]),
+                Double.parseDouble(locations[2])
+        );
+    }
+
 }
