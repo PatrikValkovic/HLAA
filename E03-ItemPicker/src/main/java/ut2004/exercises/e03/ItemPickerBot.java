@@ -3,6 +3,7 @@ package ut2004.exercises.e03;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
@@ -69,8 +70,10 @@ public class ItemPickerBot extends UT2004BotTCController {
         add(ItemType.Category.WEAPON);
         add(ItemType.Category.SHIELD);
     }};
+    private static final double TIMEOUT_CONSTANT = 1.3;
 
     private TabooSet<UnrealId> _picked;
+    private int _instance;
     private Map<UnrealId, Double> _otherPursuing = new HashMap<>(6, 0.6f);
 
     /**
@@ -80,8 +83,8 @@ public class ItemPickerBot extends UT2004BotTCController {
      */
     @Override
     public Initialize getInitializeCommand() {
-        int instance = INSTANCE.getAndIncrement();
-        return new Initialize().setName("PickerBot-" + instance).setSkin(UT2004Skins.getSkin());
+        _instance = INSTANCE.getAndIncrement();
+        return new Initialize().setName("PickerBot-" + _instance).setSkin(UT2004Skins.getSkin());
     }
 
     /**
@@ -104,6 +107,12 @@ public class ItemPickerBot extends UT2004BotTCController {
     @Override
     public void beforeFirstLogic() {
         // REGISTER TO ITEM PICKER CHECKER
+        try {
+            Thread.sleep(200 * _instance);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         ItemPickerChecker.register(info.getId());
         _picked = new TabooSet<>(bot);
     }
@@ -119,7 +128,7 @@ public class ItemPickerBot extends UT2004BotTCController {
         if (ItemPickerChecker.itemPicked(info.getId(), items.getItem(event.getId()))) {
             // AN ITEM HAD BEEN PICKED + ACKNOWLEDGED BY ItemPickerChecker
             tcClient.sendToAllOthers(new TCItemPicked(info.getId(), event.getId()));
-            _picked.add(event.getId(), 2.0 * items.getItemTimeToSpawn(items.getItem(event.getId())));
+            _picked.add(event.getId(), TIMEOUT_CONSTANT * items.getItemTimeToSpawn(items.getItem(event.getId())));
         } else {
             // should not happen... but if you encounter this, just wait with the bot a cycle and report item picked again
             // log.severe("SHOULD NOT BE HAPPENING! ItemPickerChecker refused our item!");
@@ -135,7 +144,7 @@ public class ItemPickerBot extends UT2004BotTCController {
     public void tcItemPicked(TCItemPicked event) {
         if (RUN_STANDALONE) {
             ItemPickerChecker.itemPicked(event.getWho(), items.getItem(event.getWhat()));
-            _picked.add(event.getWhat(), 2.0 * items.getItemTimeToSpawn(items.getItem(event.getWhat())));
+            _picked.add(event.getWhat(), TIMEOUT_CONSTANT * items.getItemTimeToSpawn(items.getItem(event.getWhat())));
         }
     }
 
@@ -174,7 +183,7 @@ public class ItemPickerBot extends UT2004BotTCController {
             System.exit(0);
         }
 
-        Optional<AbstractMap.SimpleEntry<Item, Double>> itemsToPick
+        Map<Item, Double> itemsToPick
                 = items.getSpawnedItems()
                        .values()
                        .stream()
@@ -185,18 +194,22 @@ public class ItemPickerBot extends UT2004BotTCController {
                                i,
                                navMeshModule.getAStarPathPlanner().getDistance(bot.getLocation(), i.getLocation())
                        ))
-                       .sorted(Comparator.comparingDouble(AbstractMap.SimpleEntry::getValue))
                        .filter(entry ->
                                !_otherPursuing.containsKey(entry.getKey().getId()) ||
                                        _otherPursuing.get(entry.getKey().getId()) > entry.getValue()
                        )
-                       .findFirst();
+                       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        if (!itemsToPick.isPresent()) {
-            //log.info("No item to pursuit");
+        if (itemsToPick.size() == 0) {
+            navigation.stopNavigation();
         } else {
-            Item i = itemsToPick.get().getKey();
-            double dist = itemsToPick.get().getValue();
+            Map.Entry<Item, Double> entry = itemsToPick.entrySet()
+                       .stream()
+                       .sorted(Comparator.comparingDouble(Map.Entry::getValue))
+                       .findFirst()
+                       .get();
+            Item i = entry.getKey();
+            double dist = entry.getValue();
             navigation.navigate(i.getLocation());
             tcClient.sendToAllOthers(new TCPursuit(i.getId(), dist));
             //log.info("Pursuing " + i.getId());
