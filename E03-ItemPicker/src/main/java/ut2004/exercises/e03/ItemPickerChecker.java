@@ -95,7 +95,9 @@ public class ItemPickerChecker {
 		bots.add(botId);
 		if (bots.size() == ITEM_PICKER_BOTS) {
 			startTime = System.currentTimeMillis();
-			new Thread(new Runnable() { public void run() { init(); } }).start();
+			new Thread(new Runnable() { public void run() {
+				init();
+			} }).start();
 		}
 	}
 	
