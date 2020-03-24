@@ -14,8 +14,9 @@ import org.ujmp.core.SparseMatrix;
 import org.ujmp.core.calculation.Calculation;
 
 public class KnowledgeBase {
-    private static final double SPEED = 300.0;
-    private static final double PRECOMPUTE_STEP = 0.2;
+    private static final double SPEED = 2000.0;
+    private static final double PRECOMPUTE_STEP = 0.25;
+    private static final double ZERO_NAVPOINTS_IN_DISTANCE = 150.0;
 
     private final UT2004BotModuleController _bot;
     private final DeltaCounter _delta = new DeltaCounter();
@@ -29,6 +30,7 @@ public class KnowledgeBase {
         this._bot = bot;
         createMarkovChain();
         createPositionMatrix();
+        _positionEstimation.showGUI();
     }
 
     private void createMarkovChain() {
@@ -63,9 +65,24 @@ public class KnowledgeBase {
                          );
                      });
             });
-        Matrix sums = _movementMarkovChain.sum(Calculation.Ret.NEW, 0, false);
+        Matrix sums = _movementMarkovChain.sum(Calculation.Ret.NEW, 1, false);
         for (int i = 0; i < nNavpoints; i++) {
-            _movementMarkovChain.setAsFloat(Math.max(0.0f, 1.0f - sums.getAsFloat(0, i)), i, i);
+            _movementMarkovChain.setAsFloat(Math.max(0.0f, 1.0f - sums.getAsFloat(i, 0)), i, i);
+        }
+
+        // normalize so rows sum to 1
+        Matrix rowSums = _movementMarkovChain.sum(Calculation.Ret.NEW, 1, false);
+        SparseMatrix multiplyMatrix = SparseMatrix.Factory.zeros(nNavpoints, nNavpoints);
+        for(int i=0;i<nNavpoints;i++)
+            multiplyMatrix.setAsFloat(1.0f / rowSums.getAsFloat(i, 0), i, i);
+        _movementMarkovChain.mtimes(Calculation.Ret.ORIG, false, multiplyMatrix);
+
+        // check
+        for(int r=0;r<nNavpoints;r++){
+            double s = 0;
+            for(int c=0;c<nNavpoints;c++)
+                s += _movementMarkovChain.getAsDouble(r, c);
+            assert Math.abs(s - 1.0) < 1e-25;
         }
     }
 
@@ -79,22 +96,29 @@ public class KnowledgeBase {
     public void updateKnowledge() {
         float delta = _delta.getDelta();
 
+        // update estimator
+        _positionEstimation.mtimes(
+                Calculation.Ret.ORIG,
+                false,
+                _movementMarkovChain
+        );
+
         // update seen navpoints
         _bot.getNavPoints().getVisibleNavPoints()
             .keySet()
             .forEach(point -> {
                 _positionEstimation.setAsFloat(0.0f, 0, _navpointToIndex.get(point));
+                //System.out.println("Setting 0 to " + _bot.getNavPoints().getNavPoint(point).getLocation());
             });
-        double sum = _positionEstimation.getValueSum();
-        _positionEstimation.divide(sum);
-
-        // update estimator
-        int ticks = (int)Math.round(delta / PRECOMPUTE_STEP);
-        _positionEstimation.mtimes(
-                Calculation.Ret.ORIG,
-                false,
-                _movementMarkovChain.power(Calculation.Ret.LINK, ticks)
-        );
+        // and navpoints pretty close
+        _bot.getNavPoints().getNavPoints()
+            .values()
+            .stream()
+            .filter(p -> p.getLocation().getDistance(_bot.getInfo().getLocation()) < ZERO_NAVPOINTS_IN_DISTANCE)
+            .forEach(point -> {
+                _positionEstimation.setAsFloat(0.0f, 0, _navpointToIndex.get(point.getId()));
+                //System.out.println("Setting 0 to nearby " + point.getLocation());
+            });
 
         // update estimator if see player
         _bot.getPlayers().getVisiblePlayers()
@@ -104,13 +128,34 @@ public class KnowledgeBase {
                         = _bot.getNavPoints()
                               .getNavPoints()
                               .values()
-                              .stream()
-                              .sorted(Comparator.comparingDouble(p -> p.getLocation().getDistance(player.getLocation())))
-                              .findFirst()
-                              .get();
+                              .stream().min(Comparator.comparingDouble(
+                                      p -> p.getLocation().getDistance(player.getLocation()))
+                        ).get();
                 _positionEstimation.fill(Calculation.Ret.ORIG, 0.0f);
                 _positionEstimation.setAsFloat(1.0f, 0, _navpointToIndex.get(playerNavpoint.getId()));
+                System.out.println("Setting to 1 because see player " + playerNavpoint.getLocation());
             });
-        _positionEstimation.divide(Calculation.Ret.ORIG, false, 1.0 / _positionEstimation.getValueSum());
+        float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0,0);
+        _positionEstimation.divide(Calculation.Ret.ORIG, false, positionSum);
+
+        // check
+        {
+            double s = 0;
+            for(int i=0;i<_bot.getNavPoints().getNavPoints().size();i++)
+                s += _positionEstimation.getAsDouble(0, i);
+            assert Math.abs(s - 1.0) < 1e-25;
+        }
+    }
+
+    public Matrix2D getPositionEstimation() {
+        return _positionEstimation;
+    }
+
+    public NavPoint getPointWithMaxProb(){
+        long[] maximumCoords = _positionEstimation.getCoordinatesOfMaximum();
+        //System.out.println("Maximum prob at position " + Arrays.toString(maximumCoords));
+        //System.out.println("Maximum value is " + _positionEstimation.getAsFloat(maximumCoords));
+        UnrealId idOfMax = _indexToNavpoin.get((int)maximumCoords[1]);
+        return _bot.getNavPoints().getNavPoint(idOfMax);
     }
 }

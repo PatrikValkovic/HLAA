@@ -16,7 +16,7 @@ public class BehaviorManager {
     public void execute() {
         this.behaviors.stream()
                       .filter(IBehavior::isFiring)
-                      .sorted(Comparator.comparingDouble(IBehavior::priority))
+                      .sorted(Comparator.comparingDouble(b -> -b.priority()))
                       .forEach(IBehavior::execute);
     }
 }
