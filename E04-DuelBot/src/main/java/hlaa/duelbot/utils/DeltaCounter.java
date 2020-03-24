@@ -1,4 +1,4 @@
-package hlaa.duelbot;
+package hlaa.duelbot.utils;
 
 import java.time.Duration;
 import java.time.Instant;

@@ -3,7 +3,7 @@ package hlaa.duelbot;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
-import java.awt.*;
+import hlaa.duelbot.utils.DeltaCounter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,6 +88,14 @@ public class KnowledgeBase {
         double sum = _positionEstimation.getValueSum();
         _positionEstimation.divide(sum);
 
+        // update estimator
+        int ticks = (int)Math.round(delta / PRECOMPUTE_STEP);
+        _positionEstimation.mtimes(
+                Calculation.Ret.ORIG,
+                false,
+                _movementMarkovChain.power(Calculation.Ret.LINK, ticks)
+        );
+
         // update estimator if see player
         _bot.getPlayers().getVisiblePlayers()
             .values()
@@ -102,15 +110,7 @@ public class KnowledgeBase {
                               .get();
                 _positionEstimation.fill(Calculation.Ret.ORIG, 0.0f);
                 _positionEstimation.setAsFloat(1.0f, 0, _navpointToIndex.get(playerNavpoint.getId()));
-                _bot.getLog().info("NavPoint " + playerNavpoint.getId());
             });
-
-        // update estimator
-        int ticks = (int)Math.round(delta / PRECOMPUTE_STEP);
-        _positionEstimation.mtimes(
-                Calculation.Ret.ORIG,
-                false,
-                _movementMarkovChain.power(Calculation.Ret.LINK, ticks)
-        );
+        _positionEstimation.divide(Calculation.Ret.ORIG, false, 1.0 / _positionEstimation.getValueSum());
     }
 }
