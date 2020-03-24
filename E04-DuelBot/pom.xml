@@ -34,6 +34,20 @@
 			<version>1.18.12</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.ujmp/ujmp-core -->
+		<dependency>
+			<groupId>org.ujmp</groupId>
+			<artifactId>ujmp-core</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.ujmp/ujmp-gui -->
+		<dependency>
+			<groupId>org.ujmp</groupId>
+			<artifactId>ujmp-gui</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<repositories>

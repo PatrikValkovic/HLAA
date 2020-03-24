@@ -27,6 +27,7 @@ import cz.cuni.amis.utils.exception.PogamutException;
 public class DuelBot extends UT2004BotModuleController {
 
     private BehaviorManager _behaviorManager;
+    private KnowledgeBase _knowledge;
 
     /**
      * Here we can modify initializing command for our bot, e.g., sets its name or skin.
@@ -43,6 +44,7 @@ public class DuelBot extends UT2004BotModuleController {
     	bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
 
     	this._behaviorManager = new BehaviorManager();
+    	this._knowledge = new KnowledgeBase(this);
     }
     
     @Override
@@ -109,12 +111,6 @@ public class DuelBot extends UT2004BotModuleController {
      */
     @EventListener(eventClass=PlayerKilled.class)
     public void playerKilled(PlayerKilled event) {    	
-    }
-    
-    @ObjectClassEventListener(eventClass=WorldObjectUpdatedEvent.class, objectClass=IncomingProjectile.class)
-    public void incomingProjectile(WorldObjectUpdatedEvent<IncomingProjectile> event) {
-    	  //event.getObject().getDirection();
-    	  //event.getObject().getSpeed();
     }
     
     // ===========
