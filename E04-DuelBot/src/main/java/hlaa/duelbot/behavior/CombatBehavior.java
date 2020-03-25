@@ -1,14 +1,19 @@
 package hlaa.duelbot.behavior;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
+import cz.cuni.amis.pogamut.ut2004.agent.navigation.levelGeometry.RayCastResult;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import hlaa.duelbot.KnowledgeBase;
 import hlaa.duelbot.utils.Inventory;
+import hlaa.duelbot.utils.Navigation;
+import java.awt.*;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -55,6 +60,8 @@ public class CombatBehavior extends BaseBehavior {
         //Inventory.showDistributions(WEAPON_PREFS);
     }
 
+    private static final double ROCKET_MINUS = 40.0;
+
     public CombatBehavior(UT2004BotModuleController bot) {
         super(bot);
     }
@@ -87,10 +94,22 @@ public class CombatBehavior extends BaseBehavior {
         WeaponPref pref = Inventory.bestWeapon(_bot.getWeaponry(), WEAPON_PREFS, playerDistance);
         _bot.getLog().info("Decided for " + pref.getWeapon().getName() + " using " + (pref.isPrimaryMode() ? "primary" : "secondary"));
 
+        Location shootTarget = opponentLocation;
+        if(pref.getWeapon().equals(UT2004ItemType.ROCKET_LAUNCHER)){
+            shootTarget = shootTarget.sub(new Location(0,0,ROCKET_MINUS));
+            if(_bot.getLevelGeometry() != null && !Navigation.canSee(_bot.getLevelGeometry(), myLocation, shootTarget)){
+                shootTarget = opponentLocation;
+                Set<ItemType> exception = new HashSet<>();
+                exception.add(UT2004ItemType.ROCKET_LAUNCHER);
+                pref = Inventory.bestWeapon(_bot.getWeaponry(), WEAPON_PREFS, playerDistance, exception);
+                _bot.getLog().info("Change to " + pref.getWeapon().getName() + " because dont see floor");
+            }
+        }
+
         _bot.getShoot().shoot(
                 _bot.getWeaponry().getWeapon(pref.getWeapon()),
                 pref.isPrimaryMode(),
-                opponent
+                shootTarget
         );
     }
 

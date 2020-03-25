@@ -27,6 +27,10 @@ public class Navigation {
         return distanceBetween < rayDistance;
     }
 
+    public static boolean canSee(LevelGeometry g, Location from, Location to){
+        return isVisible(g, from, to);
+    }
+
     public static boolean canSeeNavpoint(UT2004BotModuleController bot, NavPoint point){
         bot.getDraw().clearAll();
         bot.getDraw().drawLine(Color.GREEN, bot.getInfo().getLocation(), point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT)));

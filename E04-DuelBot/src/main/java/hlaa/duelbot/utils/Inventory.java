@@ -114,8 +114,13 @@ public class Inventory {
     }
 
     public static CombatBehavior.WeaponPref bestWeapon(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance){
+        return bestWeapon(available, weaponPrefs, distance, new HashSet<>());
+    }
+
+    public static CombatBehavior.WeaponPref bestWeapon(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance, Set<ItemType> except){
         return weaponPrefs.stream()
                           .filter(i -> available.hasWeapon(i.getWeapon()))
+                          .filter(i -> !except.contains(i.getWeapon()))
                           .max(Comparator.comparingDouble(
                                   w -> normalDistribution(w.getPriorityMean(), w.getPriorityStd(), distance) * w.getPriority()
                           )).get();
