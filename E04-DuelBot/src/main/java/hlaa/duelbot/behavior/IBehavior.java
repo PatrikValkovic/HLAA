@@ -7,4 +7,6 @@ public interface IBehavior {
     double priority();
 
     void execute();
+
+    default void terminate() {}
 }
