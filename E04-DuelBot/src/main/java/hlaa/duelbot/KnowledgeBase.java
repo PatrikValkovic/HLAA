@@ -134,7 +134,7 @@ public class KnowledgeBase {
                         ).get();
                 _positionEstimation.fill(Calculation.Ret.ORIG, 0.0f);
                 _positionEstimation.setAsFloat(1.0f, 0, _navpointToIndex.get(playerNavpoint.getId()));
-                System.out.println("Setting to 1 because see player " + playerNavpoint.getLocation());
+                //System.out.println("Setting to 1 because see player " + playerNavpoint.getLocation());
             });
         float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0,0);
         _positionEstimation.divide(Calculation.Ret.ORIG, false, positionSum);
