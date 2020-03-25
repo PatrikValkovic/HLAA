@@ -36,6 +36,7 @@ public class CombatBehavior extends BaseBehavior {
     }
     public static final List<WeaponPref> WEAPON_PREFS = new LinkedList<>();
     static {
+        //TODO make sure priorities are correct
         WEAPON_PREFS.add(new WeaponPref(400.0, 100.0, UT2004ItemType.FLAK_CANNON, true));
         WEAPON_PREFS.add(new WeaponPref(180.0, 60.0, UT2004ItemType.FLAK_CANNON, false, 0.7));
         WEAPON_PREFS.add(new WeaponPref(600, 150, UT2004ItemType.MINIGUN, true));
@@ -45,11 +46,13 @@ public class CombatBehavior extends BaseBehavior {
         WEAPON_PREFS.add(new WeaponPref(1400, 200, UT2004ItemType.SNIPER_RIFLE, true));
         WEAPON_PREFS.add(new WeaponPref(1700, 200, UT2004ItemType.LIGHTNING_GUN, true));
         WEAPON_PREFS.add(new WeaponPref(1700, 200, UT2004ItemType.SNIPER_RIFLE, true));
-        WEAPON_PREFS.add(new WeaponPref(600, 40, UT2004ItemType.ROCKET_LAUNCHER, true));
-        WEAPON_PREFS.add(new WeaponPref(600, 40, UT2004ItemType.ROCKET_LAUNCHER, true));
+        WEAPON_PREFS.add(new WeaponPref(2500, 500, UT2004ItemType.LIGHTNING_GUN, true));
+        WEAPON_PREFS.add(new WeaponPref(2500, 500, UT2004ItemType.SNIPER_RIFLE, true));
+        WEAPON_PREFS.add(new WeaponPref(250, 40, UT2004ItemType.ROCKET_LAUNCHER, true));
         WEAPON_PREFS.add(new WeaponPref(400, 400, UT2004ItemType.ASSAULT_RIFLE, true, 0.6));
         WEAPON_PREFS.add(new WeaponPref(150, 100, UT2004ItemType.BIO_RIFLE, true, 0.8));
         WEAPON_PREFS.add(new WeaponPref(400, 250, UT2004ItemType.LINK_GUN, true, 0.8));
+        //Inventory.showDistributions(WEAPON_PREFS);
     }
 
     public CombatBehavior(UT2004BotModuleController bot) {
@@ -63,7 +66,6 @@ public class CombatBehavior extends BaseBehavior {
     }
     public CombatBehavior(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
-        //Inventory.showDistributions(WEAPON_PREFS);
     }
 
     @Override

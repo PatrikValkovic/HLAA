@@ -22,11 +22,11 @@ public class PursueBehavior extends BaseBehavior {
     @Override
     public void execute() {
         // get point to navigate
-        NavPoint p;
-        do {
-            p = _knowledge.getPointWithMaxProb();
+        NavPoint p = _knowledge.getPointWithMaxProb();
+        while(!Navigation.canReachNavpoint(_bot.getNMNav(), _bot.getInfo().getLocation(), p.getLocation())) {
             _knowledge.updateNavpoint(p, 0.0f);
-        } while(!Navigation.canReachNavpoint(_bot.getNMNav(), _bot.getInfo().getLocation(), p.getLocation()));
+            p = _knowledge.getPointWithMaxProb();
+        }
 
         //System.out.println("Bot location " + _bot.getInfo().getLocation());
         _bot.getLog().info("Pursue to point " + p.getLocation());

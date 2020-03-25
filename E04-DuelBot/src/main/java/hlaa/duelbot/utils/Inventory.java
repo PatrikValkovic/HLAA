@@ -27,7 +27,7 @@ public class Inventory {
     }
 
     public static boolean hasWeapon(Weaponry weaponry, ItemType type){
-        return weaponry.hasWeapon(type);
+        return weaponry.hasWeapon(type) && weaponry.hasAmmo(type);
     }
 
     public static boolean hasDistanceWeapon(Weaponry weaponry){
@@ -93,7 +93,7 @@ public class Inventory {
     public static CombatBehavior.WeaponPref bestWeapon(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance){
         return weaponPrefs.stream()
                           .filter(i -> available.hasWeapon(i.getWeapon()))
-                          .min(Comparator.comparingDouble(
+                          .max(Comparator.comparingDouble(
                                   w -> normalDistribution(w.getPriorityMean(), w.getPriorityStd(), distance) * w.getPriority()
                           )).get();
     }

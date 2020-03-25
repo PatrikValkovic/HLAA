@@ -30,6 +30,9 @@ public class Navigation {
     public static boolean canSeeNavpoint(UT2004BotModuleController bot, NavPoint point){
         bot.getDraw().clearAll();
         bot.getDraw().drawLine(Color.GREEN, bot.getInfo().getLocation(), point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT)));
+        if(bot.getLevelGeometry() == null || !bot.getLevelGeometry().isLoaded())
+            return false;
+
         RayCastResult ray = bot.getLevelGeometry().rayCast(bot.getInfo().getLocation(), point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT)));
         if(ray.isHit()){
             bot.getDraw().drawLine(Color.BLUE, bot.getInfo().getLocation(), ray.hitLocation);
