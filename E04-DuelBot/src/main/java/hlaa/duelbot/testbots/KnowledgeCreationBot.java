@@ -29,7 +29,7 @@ public class KnowledgeCreationBot extends UT2004BotModuleController {
      */
     @Override
     public Initialize getInitializeCommand() {  
-    	return new Initialize().setName("TestingBot").setSkin("Ophelia").setDesiredSkill(6);
+    	return new Initialize().setName(this.getClass().getSimpleName()).setSkin("Ophelia").setDesiredSkill(6);
     }
 
     @Override

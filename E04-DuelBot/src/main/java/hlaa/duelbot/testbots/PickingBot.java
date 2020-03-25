@@ -25,7 +25,7 @@ public class PickingBot extends UT2004BotModuleController {
      */
     @Override
     public Initialize getInitializeCommand() {  
-    	return new Initialize().setName("TestingBot").setSkin("Ophelia").setDesiredSkill(6);
+    	return new Initialize().setName(this.getClass().getSimpleName()).setSkin("Ophelia").setDesiredSkill(6);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class PickingBot extends UT2004BotModuleController {
     public static void main(String args[]) throws PogamutException {
         new UT2004BotRunner(     // class that wrapps logic for bots executions, suitable to run single bot in single JVM
                 PickingBot.class,   // which UT2004BotController it should instantiate
-                "Testing bot"        // what name the runner should be using
+                (new Object(){}).getClass().getEnclosingClass().getSimpleName()        // what name the runner should be using
         ).setMain(true)          // tells runner that is is executed inside MAIN method, thus it may block the thread and watch whether agent/s are correctly executed
          .startAgents(1);        // tells the runner to start 2 agents
     }

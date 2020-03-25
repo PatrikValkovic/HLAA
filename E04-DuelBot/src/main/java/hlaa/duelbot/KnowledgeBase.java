@@ -14,9 +14,10 @@ import org.ujmp.core.SparseMatrix;
 import org.ujmp.core.calculation.Calculation;
 
 public class KnowledgeBase {
-    private static final double SPEED = 2000.0;
+    private static final double SPEED = 340.0;
     private static final double PRECOMPUTE_STEP = 0.25;
     private static final double ZERO_NAVPOINTS_IN_DISTANCE = 150.0;
+    private static final double MC_PROB_MULTIPLIER = 0.12;
 
     private final UT2004BotModuleController _bot;
     private final DeltaCounter _delta = new DeltaCounter();
@@ -57,7 +58,7 @@ public class KnowledgeBase {
                      .map(link -> link.getToNavPoint() == point ? link.getFromNavPoint() : link.getToNavPoint())
                      .forEach(neigbor -> {
                          double distance = neigbor.getLocation().getDistance(point.getLocation());
-                         double valueToStore = PRECOMPUTE_STEP * distance / SPEED / (double) (nNeighbors + 1);
+                         double valueToStore = MC_PROB_MULTIPLIER * PRECOMPUTE_STEP * distance / SPEED / (double) (nNeighbors + 1);
                          _movementMarkovChain.setAsFloat(
                                  (float) valueToStore,
                                  _navpointToIndex.get(point.getId()),
@@ -157,5 +158,22 @@ public class KnowledgeBase {
         //System.out.println("Maximum value is " + _positionEstimation.getAsFloat(maximumCoords));
         UnrealId idOfMax = _indexToNavpoin.get((int)maximumCoords[1]);
         return _bot.getNavPoints().getNavPoint(idOfMax);
+    }
+
+    public void updateNavpoint(NavPoint point, float newValue){
+        // update
+        _positionEstimation.setAsFloat(newValue, 0, _navpointToIndex.get(point.getId()));
+
+        // normalize to 1
+        float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0,0);
+        _positionEstimation.divide(Calculation.Ret.ORIG, false, positionSum);
+
+        // check
+        {
+            double s = 0;
+            for(int i=0;i<_bot.getNavPoints().getNavPoints().size();i++)
+                s += _positionEstimation.getAsDouble(0, i);
+            assert Math.abs(s - 1.0) < 1e-25;
+        }
     }
 }
