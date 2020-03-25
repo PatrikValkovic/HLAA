@@ -26,7 +26,12 @@ public class PickingBehavior extends BaseBehavior {
         WEAPON_WORTH.put(UT2004ItemType.SNIPER_RIFLE, 200.0);
         WEAPON_WORTH.put(UT2004ItemType.ROCKET_LAUNCHER, 100.0);
         WEAPON_WORTH.put(UT2004ItemType.U_DAMAGE_PACK, 125.0);
-        WEAPON_WORTH.put(UT2004ItemType.SUPER_SHIELD_PACK, 75.0);
+        WEAPON_WORTH.put(UT2004ItemType.SUPER_SHIELD_PACK, 90.0);
+        WEAPON_WORTH.put(UT2004ItemType.SHIELD_PACK, 75.0);
+        WEAPON_WORTH.put(UT2004ItemType.SUPER_HEALTH_PACK, 50.0);
+        WEAPON_WORTH.put(UT2004ItemType.HEALTH_PACK, 25.0);
+        WEAPON_WORTH.put(UT2004ItemType.MINI_HEALTH_PACK, 5.0);
+        WEAPON_WORTH.put(UT2004ItemType.ADRENALINE_PACK, 1.0);
     }
 
 
@@ -47,12 +52,14 @@ public class PickingBehavior extends BaseBehavior {
                                     .values()
                                     .stream()
                                     .filter(item -> WEAPON_WORTH.containsKey(item.getType()))
-                                    .filter(item -> !Inventory.hasWeapon(_bot.getWeaponry(), item.getType()))
-                                    .collect(Collectors.toList());
+                                    .filter(item -> Inventory.needItem(_bot.getWeaponry(), _bot.getInfo(), item.getType()))
+                                    .filter(item ->
+                                        Navigation.canReachNavpoint(_bot.getNMNav(), _bot.getInfo().getLocation(), item.getLocation())
+                                    ).collect(Collectors.toList());
         // first the target item
         // TODO different priorities to short/mid/long range weapons based on the inventory?
-        Optional<Item> toPickup = toConsider.stream().min(Comparator.comparingDouble(
-                i -> Math.sqrt(
+        Optional<Item> toPickup = toConsider.stream().max(Comparator.comparingDouble(
+                i -> 1.0 / Math.sqrt(
                         Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo().getLocation(), i.getLocation())
                 ) * WEAPON_WORTH.get(i.getType())
         ));
@@ -76,7 +83,7 @@ public class PickingBehavior extends BaseBehavior {
                 Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo().getLocation(), item.getLocation()) < finalPathLength
             ).filter(item ->
                     Navigation.pathComposition(_bot.getNMNav(), _bot.getInfo().getLocation(), item.getLocation(), finalCurrentTarget.getLocation()) < finalPathLength * MAX_PATH_DIFF
-            ).min(Comparator.comparingDouble(item -> Navigation.pathComposition(
+            ).max(Comparator.comparingDouble(item -> Navigation.pathComposition(
                     _bot.getNMNav(), _bot.getInfo().getLocation(), item.getLocation(), finalCurrentTarget.getLocation()
             )));
 
@@ -88,12 +95,17 @@ public class PickingBehavior extends BaseBehavior {
         }
 
         // navigate to item
-        //_bot.getLog().info("Going to pick " + currentTarget.getType().getName());
+        //_bot.getLog().info("Going to pick " + currentTarget.getType().getName() + " at " + currentTarget.getLocation());
         _bot.getNMNav().navigate(currentTarget.getLocation());
     }
 
     @Override
     public double priority() {
         return 10.0f;
+    }
+
+    @Override
+    public void terminate() {
+        _bot.getNMNav().stopNavigation();
     }
 }

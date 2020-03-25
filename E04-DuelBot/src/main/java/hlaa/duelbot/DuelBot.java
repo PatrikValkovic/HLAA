@@ -1,5 +1,6 @@
 package hlaa.duelbot;
 
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.*;
 import hlaa.duelbot.behavior.BehaviorManager;
 import java.util.logging.Level;
 
@@ -10,16 +11,6 @@ import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
 import cz.cuni.amis.pogamut.ut2004.agent.module.utils.UT2004Skins;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotDamaged;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotKilled;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ConfigChange;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GameInfo;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.IncomingProjectile;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.InitedMessage;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ItemPickedUp;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerDamaged;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerKilled;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.exception.PogamutException;
 
@@ -75,14 +66,8 @@ public class DuelBot extends UT2004BotModuleController {
     	Item pickedUp = items.getItem(event.getId());
     	if (pickedUp == null) return; // ignore unknown items
     }
-    
-    /**
-     * YOUR bot has just been damaged.
-     * @param event
-     */
-    @EventListener(eventClass=BotDamaged.class)
-    public void botDamaged(BotDamaged event) {
-    }
+
+
 
     /**
      * YOUR bot has just been killed. 

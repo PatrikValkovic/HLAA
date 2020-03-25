@@ -2,6 +2,7 @@ package hlaa.duelbot.utils;
 
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensomotoric.Weapon;
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensomotoric.Weaponry;
+import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.AgentInfo;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import hlaa.duelbot.behavior.CombatBehavior;
@@ -26,8 +27,30 @@ public class Inventory {
                 .collect(Collectors.toSet());
     }
 
-    public static boolean hasWeapon(Weaponry weaponry, ItemType type){
-        return weaponry.hasWeapon(type) && weaponry.hasAmmo(type);
+    public static boolean canUseWeapon(Weaponry weaponry, ItemType type){
+        return UT2004ItemType.Category.WEAPON.getTypes().contains(type) &&
+                (!weaponry.hasWeapon(type) || weaponry.getAmmo(type) < 5);
+    }
+
+    public static boolean needItem(Weaponry weaponry, AgentInfo info, ItemType item){
+        return canUseWeapon(weaponry, item) ||
+                canUseHealthPack(info, item) ||
+                canUseShieldPack(info, item) ||
+                UT2004ItemType.U_DAMAGE_PACK.equals(item);
+    }
+
+    public static boolean canUseHealthPack(AgentInfo info, ItemType type){
+        return UT2004ItemType.Category.HEALTH.getTypes().contains(type) &&
+                (UT2004ItemType.HEALTH_PACK.equals(type) && info.getHealth() < 100) ||
+                (UT2004ItemType.MINI_HEALTH_PACK.equals(type) && info.getHealth() < 199) ||
+                (UT2004ItemType.SUPER_HEALTH_PACK.equals(type) && info.getHealth() < 100); //TODO not sure
+    }
+
+    public static boolean canUseShieldPack(AgentInfo info, ItemType type){
+        return (UT2004ItemType.SHIELD_PACK.equals(type) || UT2004ItemType.SUPER_SHIELD_PACK.equals(type)) &&
+                info.getArmor() < 150;
+        //return UT2004ItemType.Category.SHIELD.getTypes().contains(type) &&
+        //        info.getArmor() < 150;
     }
 
     public static boolean hasDistanceWeapon(Weaponry weaponry){

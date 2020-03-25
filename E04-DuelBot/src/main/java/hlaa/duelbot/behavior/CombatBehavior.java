@@ -93,4 +93,9 @@ public class CombatBehavior extends BaseBehavior {
                 opponent
         );
     }
+
+    @Override
+    public void terminate() {
+        _bot.getShoot().stopShooting();
+    }
 }
