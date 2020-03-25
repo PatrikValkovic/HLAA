@@ -31,7 +31,7 @@ public class KnowledgeBase {
         this._bot = bot;
         createMarkovChain();
         createPositionMatrix();
-        _positionEstimation.showGUI();
+        //_positionEstimation.showGUI();
     }
 
     private void createMarkovChain() {
