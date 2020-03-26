@@ -61,7 +61,6 @@ public class MedkitBehavior extends BaseBehavior {
 
         //draw path
         if(true){
-            _bot.getDraw().clearAll();
             List<NavPoint> p = Navigation.getPath(path);
             for (int i = 0; i < p.size() - 1; i++)
                 _bot.getDraw().drawLine(Color.ORANGE, p.get(i).getLocation(), p.get(i + 1).getLocation());

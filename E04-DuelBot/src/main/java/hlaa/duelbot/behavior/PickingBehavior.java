@@ -40,7 +40,9 @@ public class PickingBehavior extends BaseBehavior {
         WEAPON_WORTH.put(UT2004ItemType.ADRENALINE_PACK, 1.0);
     }
 
-
+    public PickingBehavior(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+        super(bot, knowledge);
+    }
     public PickingBehavior(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
     }
@@ -124,11 +126,6 @@ public class PickingBehavior extends BaseBehavior {
         else {
             _bot.getShoot().stopShooting();
         }
-    }
-
-    @Override
-    public double priority() {
-        return 10.0f;
     }
 
     @Override

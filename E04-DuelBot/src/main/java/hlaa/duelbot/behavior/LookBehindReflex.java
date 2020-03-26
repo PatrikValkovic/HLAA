@@ -21,7 +21,7 @@ public class LookBehindReflex extends BaseReflex {
 
     @Override
     public void execute() {
-        System.out.println("Look behind");
+        _bot.getLog().info("Look behind");
         _bot.getMove().turnHorizontal(180);
         _delta -= LOOK_BEHIND_EVERY_S;
     }

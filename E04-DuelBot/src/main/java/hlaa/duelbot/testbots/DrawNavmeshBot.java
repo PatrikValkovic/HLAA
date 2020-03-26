@@ -40,7 +40,6 @@ public class DrawNavmeshBot extends UT2004BotModuleController {
     
     @Override
     public void beforeFirstLogic() {
-        draw.clearAll();
         getNavMesh().getPolygons()
                     .forEach(polygon -> {
                         polygon.getEdges().forEach(edge -> {

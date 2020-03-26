@@ -96,6 +96,7 @@ public class KnowledgeBase {
 
     public void updateKnowledge() {
         float delta = _delta.getDelta();
+        _bot.getDraw().clearAll();
 
         // update estimator
         _positionEstimation.mtimes(
@@ -108,7 +109,7 @@ public class KnowledgeBase {
         _bot.getNavPoints().getVisibleNavPoints()
             .keySet()
             .forEach(point -> {
-                _positionEstimation.setAsFloat(0.0f, 0, _navpointToIndex.get(point));
+                _positionEstimation.setAsFloat(0.0000000001f, 0, _navpointToIndex.get(point));
                 //System.out.println("Setting 0 to " + _bot.getNavPoints().getNavPoint(point).getLocation());
             });
         // and navpoints pretty close
@@ -117,7 +118,7 @@ public class KnowledgeBase {
             .stream()
             .filter(p -> p.getLocation().getDistance(_bot.getInfo().getLocation()) < ZERO_NAVPOINTS_IN_DISTANCE)
             .forEach(point -> {
-                _positionEstimation.setAsFloat(0.0f, 0, _navpointToIndex.get(point.getId()));
+                _positionEstimation.setAsFloat(0.0000000001f, 0, _navpointToIndex.get(point.getId()));
                 //System.out.println("Setting 0 to nearby " + point.getLocation());
             });
 
@@ -132,7 +133,7 @@ public class KnowledgeBase {
                               .stream().min(Comparator.comparingDouble(
                                       p -> p.getLocation().getDistance(player.getLocation()))
                         ).get();
-                _positionEstimation.fill(Calculation.Ret.ORIG, 0.0f);
+                _positionEstimation.fill(Calculation.Ret.ORIG, 0.0000000001f);
                 _positionEstimation.setAsFloat(1.0f, 0, _navpointToIndex.get(playerNavpoint.getId()));
                 //System.out.println("Setting to 1 because see player " + playerNavpoint.getLocation());
             });
@@ -162,7 +163,7 @@ public class KnowledgeBase {
 
     public void updateNavpoint(NavPoint point, float newValue){
         // update
-        _positionEstimation.setAsFloat(newValue, 0, _navpointToIndex.get(point.getId()));
+        _positionEstimation.setAsFloat(Math.max(newValue, 0.0000000001f), 0, _navpointToIndex.get(point.getId()));
 
         // normalize to 1
         float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0,0);
@@ -179,5 +180,9 @@ public class KnowledgeBase {
 
     public double getProbAtNavpoint(NavPoint p){
         return _positionEstimation.getAsDouble(0, _navpointToIndex.get(p.getId()));
+    }
+
+    public double getMaxProb(){
+        return getProbAtNavpoint(getPointWithMaxProb());
     }
 }

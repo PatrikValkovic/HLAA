@@ -5,6 +5,7 @@ import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
+import hlaa.duelbot.KnowledgeBase;
 import hlaa.duelbot.utils.Navigation;
 import java.util.Comparator;
 
@@ -16,7 +17,9 @@ public class RetreatBehavior extends BaseBehavior {
     public RetreatBehavior(UT2004BotModuleController bot) {
         super(bot);
     }
-
+    public RetreatBehavior(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+        super(bot, knowledge);
+    }
     public RetreatBehavior(UT2004BotModuleController bot, double priority) {
         super(bot, priority);
     }

@@ -7,19 +7,24 @@ import java.util.stream.Collectors;
 
 public class BehaviorManager {
 
-    private List<IBehavior> _behaviors = new LinkedList<>();
+    private List<IBehaviorProvider> _behaviors = new LinkedList<>();
     private List<IBehavior> _previouslyActivated = new LinkedList<>();
 
-    public BehaviorManager addBehavior(IBehavior behavior){
-        this._behaviors.add(behavior);
+    public BehaviorManager addBehavior(IBehavior behavior) {
+        return addProvider(new DefaultBehaviorProvider(behavior));
+    }
+
+    public BehaviorManager addProvider(IBehaviorProvider provider){
+        _behaviors.add(provider);
         return this;
     }
 
     public void execute() {
         List<IBehavior> nowActivated = this._behaviors.stream()
-                       .filter(IBehavior::isFiring)
-                       .sorted(Comparator.comparingDouble(b -> -b.priority()))
-                       .collect(Collectors.toList());
+                                                      .map(IBehaviorProvider::get)
+                                                      .filter(IBehavior::isFiring)
+                                                      .sorted(Comparator.comparingDouble(IBehavior::priority))
+                                                      .collect(Collectors.toList());
         _previouslyActivated.removeAll(nowActivated);
         _previouslyActivated.forEach(IBehavior::terminate);
 

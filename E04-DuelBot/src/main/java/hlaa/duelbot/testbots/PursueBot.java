@@ -8,9 +8,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.*;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.exception.PogamutException;
 import hlaa.duelbot.KnowledgeBase;
-import hlaa.duelbot.behavior.BehaviorManager;
-import hlaa.duelbot.behavior.PickingBehavior;
-import hlaa.duelbot.behavior.PursueBehavior;
+import hlaa.duelbot.behavior.*;
 import java.util.logging.Level;
 
 @AgentScoped
@@ -35,7 +33,9 @@ public class PursueBot extends UT2004BotModuleController {
 
     	_knowledge = new KnowledgeBase(this);
     	_behavior = new BehaviorManager();
-    	_behavior.addBehavior(new PursueBehavior(this, _knowledge));
+    	_behavior.addBehavior(new PursueBehavior(this, _knowledge))
+                 .addBehavior(new ReflexBehavior(this, 100).addReflex(new DodgeReflex(this)));
+
     }
     
     @Override

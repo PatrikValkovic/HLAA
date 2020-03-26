@@ -40,9 +40,4 @@ public class PursueBehavior extends BaseBehavior {
             _bot.getNavigation().setFocus(null);
         }
     }
-
-    @Override
-    public double priority() {
-        return 10.0;
-    }
 }
