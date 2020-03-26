@@ -27,26 +27,26 @@ public class Inventory {
                 .collect(Collectors.toSet());
     }
 
-    public static boolean canUseWeapon(Weaponry weaponry, ItemType type){
+    public static boolean needWeapon(Weaponry weaponry, ItemType type){
         return UT2004ItemType.Category.WEAPON.getTypes().contains(type) &&
                 (!weaponry.hasWeapon(type) || weaponry.getAmmo(type) < 5);
     }
 
     public static boolean needItem(Weaponry weaponry, AgentInfo info, ItemType item){
-        return canUseWeapon(weaponry, item) ||
-                canUseHealthPack(info, item) ||
-                canUseShieldPack(info, item) ||
+        return needWeapon(weaponry, item) ||
+                needHealthPack(info, item) ||
+                needShieldPack(info, item) ||
                 UT2004ItemType.U_DAMAGE_PACK.equals(item);
     }
 
-    public static boolean canUseHealthPack(AgentInfo info, ItemType type){
+    public static boolean needHealthPack(AgentInfo info, ItemType type){
         return UT2004ItemType.Category.HEALTH.getTypes().contains(type) &&
                 (UT2004ItemType.HEALTH_PACK.equals(type) && info.getHealth() < 100) ||
                 (UT2004ItemType.MINI_HEALTH_PACK.equals(type) && info.getHealth() < 199) ||
                 (UT2004ItemType.SUPER_HEALTH_PACK.equals(type) && info.getHealth() < 100); //TODO not sure
     }
 
-    public static boolean canUseShieldPack(AgentInfo info, ItemType type){
+    public static boolean needShieldPack(AgentInfo info, ItemType type){
         return (UT2004ItemType.SHIELD_PACK.equals(type) || UT2004ItemType.SUPER_SHIELD_PACK.equals(type)) &&
                 info.getArmor() < 150;
         //return UT2004ItemType.Category.SHIELD.getTypes().contains(type) &&
@@ -125,5 +125,11 @@ public class Inventory {
                                   w -> normalDistribution(w.getPriorityMean(), w.getPriorityStd(), distance) * w.getPriority()
                           )).get();
     }
+
+    public static boolean canUseWeapon(Weaponry weaponry, ItemType type){
+        return UT2004ItemType.Category.WEAPON.getTypes().contains(type) &&
+                weaponry.hasWeapon(type) && weaponry.getAmmo(type) >= 5;
+    }
+
 
 }

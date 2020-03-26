@@ -28,6 +28,9 @@ public class Navigation {
     }
 
     public static boolean isVisible(LevelGeometry g, Location from, Location to){
+        if(g == null || !g.isLoaded())
+            return false;
+
         double distanceBetween = from.getDistance(to);
         RayCastResult ray = g.rayCast(from, to);
         double rayDistance = ray.isHit() ? ray.hitDistance : Double.POSITIVE_INFINITY;
