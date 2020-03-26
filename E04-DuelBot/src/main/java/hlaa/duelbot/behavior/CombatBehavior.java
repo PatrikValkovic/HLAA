@@ -1,7 +1,6 @@
 package hlaa.duelbot.behavior;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.levelGeometry.RayCastResult;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
@@ -9,7 +8,6 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import hlaa.duelbot.KnowledgeBase;
 import hlaa.duelbot.utils.Inventory;
 import hlaa.duelbot.utils.Navigation;
-import java.awt.*;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;

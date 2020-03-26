@@ -176,4 +176,8 @@ public class KnowledgeBase {
             assert Math.abs(s - 1.0) < 1e-25;
         }
     }
+
+    public double getProbAtNavpoint(NavPoint p){
+        return _positionEstimation.getAsDouble(0, _navpointToIndex.get(p.getId()));
+    }
 }
