@@ -3,8 +3,10 @@ package hlaa.duelbot.utils;
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensomotoric.Weapon;
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensomotoric.Weaponry;
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.AgentInfo;
+import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.Items;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import hlaa.duelbot.behavior.CombatBehavior;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,11 +29,6 @@ public class Inventory {
                        .collect(Collectors.toSet());
     }
 
-    public static boolean needWeapon(Weaponry weaponry, ItemType type) {
-        return UT2004ItemType.Category.WEAPON.getTypes().contains(type) &&
-                (!weaponry.hasWeapon(type) || weaponry.getAmmo(type) < 5);
-    }
-
     public static boolean needItem(Weaponry weaponry, AgentInfo info, ItemType item) {
         return needWeapon(weaponry, item) ||
                 needHealthPack(info, item) ||
@@ -39,16 +36,23 @@ public class Inventory {
                 UT2004ItemType.U_DAMAGE_PACK.equals(item);
     }
 
+    public static boolean needWeapon(Weaponry weaponry, ItemType type) {
+        return isWeapon(type) &&
+                (!weaponry.hasWeapon(type) ||
+                        weaponry.getPrimaryWeaponAmmo(type) < weaponry.getMaxAmmo(weaponry.getPrimaryWeaponAmmoType(type)) ||
+                        weaponry.getSecondaryWeaponAmmo(type) < weaponry.getMaxAmmo(weaponry.getSecondaryWeaponAmmoType(type))
+                );
+    }
+
     public static boolean needHealthPack(AgentInfo info, ItemType type) {
-        return UT2004ItemType.Category.HEALTH.getTypes().contains(type) &&
+        return isHealth(type) &&
                 (UT2004ItemType.HEALTH_PACK.equals(type) && info.getHealth() < 100) ||
                 (UT2004ItemType.MINI_HEALTH_PACK.equals(type) && info.getHealth() < 199) ||
                 (UT2004ItemType.SUPER_HEALTH_PACK.equals(type) && info.getHealth() < 100); //TODO not sure
     }
 
     public static boolean needShieldPack(AgentInfo info, ItemType type) {
-        return (UT2004ItemType.SHIELD_PACK.equals(type) || UT2004ItemType.SUPER_SHIELD_PACK.equals(type)) &&
-                info.getArmor() < 150;
+        return isShield(type) && info.getArmor() < 150;
         //return UT2004ItemType.Category.SHIELD.getTypes().contains(type) &&
         //        info.getArmor() < 150;
     }
@@ -146,5 +150,41 @@ public class Inventory {
                 weaponry.hasWeapon(type) && weaponry.getAmmo(type) >= 5;
     }
 
+    public static boolean isWeapon(ItemType type) {
+        return UT2004ItemType.Category.WEAPON.getTypes().contains(type);
+    }
 
+    public static boolean isHealth(ItemType type) {
+        return UT2004ItemType.Category.HEALTH.getTypes().contains(type);
+    }
+
+    public static boolean isShield(ItemType type) {
+        return UT2004ItemType.SHIELD_PACK.equals(type) || UT2004ItemType.SUPER_SHIELD_PACK.equals(type);
+    }
+
+    public static boolean isUDamage(ItemType type) {
+        return UT2004ItemType.U_DAMAGE_PACK.equals(type);
+    }
+
+    public static boolean needUDamage(AgentInfo info) {
+        return true;
+    }
+
+    public static boolean isAmmo(ItemType type) {
+        return UT2004ItemType.Category.AMMO.getTypes().contains(type);
+    }
+
+    public static boolean needAmmo(Weaponry weaponry, ItemType type) {
+        int currentAmmo = weaponry.getAmmo(type);
+        int maxAmmo = weaponry.getMaxAmmo(type);
+        return currentAmmo < maxAmmo;
+    }
+
+    public static boolean shouldPickup(Weaponry weaponry, AgentInfo info, ItemType type) {
+        return (isWeapon(type) && needWeapon(weaponry, type)) ||
+                (isHealth(type) && needHealthPack(info, type)) ||
+                (isShield(type) && needShieldPack(info, type)) ||
+                (isUDamage(type) && needUDamage(info)) ||
+                (isAmmo(type) && needAmmo(weaponry, type));
+    }
 }

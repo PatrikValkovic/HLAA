@@ -4,15 +4,15 @@ import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
 import cz.cuni.amis.pogamut.base.agent.navigation.impl.PathFuture;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
+import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.NavPoints;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.levelGeometry.LevelGeometry;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.levelGeometry.RayCastResult;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.pathfollowing.NavMeshNavigation;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotController;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Navigation {
@@ -110,6 +110,18 @@ public class Navigation {
         }
 
         return finalPath;
+    }
+
+    public static NavPoint getClosestNavpoint(UT2004BotModuleController bot, NavPoints navpoints){
+        return getClosestNavpoint(bot.getInfo().getLocation(), navpoints);
+    }
+
+    public static NavPoint getClosestNavpoint(ILocated from, NavPoints navpoints){
+        return navpoints.getNavPoints()
+                .values()
+                .stream()
+                .min(Comparator.comparingDouble(p -> directDistance(p, from)))
+                .get();
     }
 
 }

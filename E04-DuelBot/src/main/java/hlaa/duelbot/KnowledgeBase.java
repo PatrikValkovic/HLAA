@@ -1,12 +1,19 @@
 package hlaa.duelbot;
 
+import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import hlaa.duelbot.utils.DeltaCounter;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import hlaa.duelbot.utils.Navigation;
+import hlaa.duelbot.utils.SpawnItemHelper;
+import java.awt.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.ujmp.core.DenseMatrix;
 import org.ujmp.core.Matrix;
 import org.ujmp.core.Matrix2D;
@@ -27,10 +34,13 @@ public class KnowledgeBase {
     private Map<Integer, UnrealId> _indexToNavpoin;
     private Map<UnrealId, Integer> _navpointToIndex;
 
+    private Map<UnrealId, SpawnItemHelper> _spawnedItems;
+
     public KnowledgeBase(UT2004BotModuleController bot) {
         this._bot = bot;
         createMarkovChain();
         createPositionMatrix();
+        createSpawnedItems();
         //_positionEstimation.showGUI();
     }
 
@@ -74,14 +84,14 @@ public class KnowledgeBase {
         // normalize so rows sum to 1
         Matrix rowSums = _movementMarkovChain.sum(Calculation.Ret.NEW, 1, false);
         SparseMatrix multiplyMatrix = SparseMatrix.Factory.zeros(nNavpoints, nNavpoints);
-        for(int i=0;i<nNavpoints;i++)
+        for (int i = 0; i < nNavpoints; i++)
             multiplyMatrix.setAsFloat(1.0f / rowSums.getAsFloat(i, 0), i, i);
         _movementMarkovChain.mtimes(Calculation.Ret.ORIG, false, multiplyMatrix);
 
         // check
-        for(int r=0;r<nNavpoints;r++){
+        for (int r = 0; r < nNavpoints; r++) {
             double s = 0;
-            for(int c=0;c<nNavpoints;c++)
+            for (int c = 0; c < nNavpoints; c++)
                 s += _movementMarkovChain.getAsDouble(r, c);
             assert Math.abs(s - 1.0) < 1e-25;
         }
@@ -92,6 +102,18 @@ public class KnowledgeBase {
         _positionEstimation = DenseMatrix.Factory.zeros(1, nNavpoints);
         for (int i = 0; i < nNavpoints; i++)
             _positionEstimation.setAsFloat(1.0f / (float) nNavpoints, 0, i);
+    }
+
+    private void createSpawnedItems() {
+        _spawnedItems = _bot.getItems()
+                            .getAllItems()
+                            .values()
+                            .stream()
+                            .map(item -> {
+                                double timeToSpawn = _bot.getItems().getItemRespawnTime(item);
+                                Location spawnLocation = item.getLocation();
+                                return new SpawnItemHelper(spawnLocation, timeToSpawn, item);
+                            }).collect(Collectors.toMap(i -> i.getItem().getId(), i -> i));
     }
 
     public void updateKnowledge() {
@@ -131,21 +153,64 @@ public class KnowledgeBase {
                               .getNavPoints()
                               .values()
                               .stream().min(Comparator.comparingDouble(
-                                      p -> p.getLocation().getDistance(player.getLocation()))
+                                p -> p.getLocation().getDistance(player.getLocation()))
                         ).get();
                 _positionEstimation.fill(Calculation.Ret.ORIG, 0.0000000001f);
                 _positionEstimation.setAsFloat(1.0f, 0, _navpointToIndex.get(playerNavpoint.getId()));
                 //System.out.println("Setting to 1 because see player " + playerNavpoint.getLocation());
             });
-        float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0,0);
+        float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0, 0);
         _positionEstimation.divide(Calculation.Ret.ORIG, false, positionSum);
 
         // check
-        {
+        /*{
             double s = 0;
             for(int i=0;i<_bot.getNavPoints().getNavPoints().size();i++)
                 s += _positionEstimation.getAsDouble(0, i);
             assert Math.abs(s - 1.0) < 1e-25;
+        }*/
+
+        // update positions
+        if (_bot.getLevelGeometry() != null && _bot.getLevelGeometry().isLoaded()) {
+            Set<SpawnItemHelper> shouldSeeItems = _spawnedItems.values()
+                                                               .stream()
+                                                               .filter(item -> _bot.getInfo().isFacing(item.getLocation(), 40))
+                                                               .filter(item -> Navigation.canSee(_bot.getLevelGeometry(), _bot.getInfo().getLocation(), item.getLocation()))
+                                                               .collect(Collectors.toSet());
+            Set<Item> seeItems = new HashSet<>(_bot.getItems()
+                                                   .getVisibleItems()
+                                                   .values());
+
+            Set<SpawnItemHelper> dontSeeItems = new HashSet<>(shouldSeeItems);
+            dontSeeItems.removeIf(i -> seeItems.contains(i.getItem()));
+            this.getSpawnedItems().stream()
+                .filter(i -> Navigation.directDistance(_bot, i.getLocation()) < 200)
+                .forEach(i -> dontSeeItems.add(_spawnedItems.get(i.getId())));
+
+            if(true){
+                seeItems.forEach(item -> _bot.getDraw().drawLine(Color.PINK, _bot.getInfo(), item));
+                dontSeeItems.forEach(item -> _bot.getDraw().drawLine(new Color(147, 49,255), _bot.getInfo(), item.getLocation()));
+            }
+
+            seeItems.forEach(i -> {
+                SpawnItemHelper helper = _spawnedItems.get(i.getId());
+                if(helper != null)
+                    helper.setSpawnProb(1);
+            });
+
+            dontSeeItems.forEach(helper -> {
+                Instant lastUnseen = helper.getLastUnseen();
+                Instant currentUnseed = Instant.now();
+                double timeBetween = (double)Duration.between(lastUnseen, currentUnseed).toMillis();
+                if(timeBetween > helper.getSpawnTime()){
+                    helper.setSpawnProb(0.0);
+                    helper.setLastUnseen(currentUnseed);
+                }
+                else {
+                    helper.setSpawnProb(helper.getSpawnProb() + timeBetween / helper.getSpawnTime());
+                    helper.setLastUnseen(currentUnseed);
+                }
+            });
         }
     }
 
@@ -153,36 +218,57 @@ public class KnowledgeBase {
         return _positionEstimation;
     }
 
-    public NavPoint getPointWithMaxProb(){
+    public NavPoint getPointWithMaxProb() {
         long[] maximumCoords = _positionEstimation.getCoordinatesOfMaximum();
         //System.out.println("Maximum prob at position " + Arrays.toString(maximumCoords));
         //System.out.println("Maximum value is " + _positionEstimation.getAsFloat(maximumCoords));
-        UnrealId idOfMax = _indexToNavpoin.get((int)maximumCoords[1]);
+        UnrealId idOfMax = _indexToNavpoin.get((int) maximumCoords[1]);
         return _bot.getNavPoints().getNavPoint(idOfMax);
     }
 
-    public void updateNavpoint(NavPoint point, float newValue){
+    public void updateNavpoint(NavPoint point, float newValue) {
         // update
         _positionEstimation.setAsFloat(Math.max(newValue, 0.0000000001f), 0, _navpointToIndex.get(point.getId()));
 
         // normalize to 1
-        float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0,0);
+        float positionSum = _positionEstimation.sum(Calculation.Ret.NEW, 1, false).getAsFloat(0, 0);
         _positionEstimation.divide(Calculation.Ret.ORIG, false, positionSum);
 
         // check
-        {
+        /*{
             double s = 0;
             for(int i=0;i<_bot.getNavPoints().getNavPoints().size();i++)
                 s += _positionEstimation.getAsDouble(0, i);
             assert Math.abs(s - 1.0) < 1e-25;
-        }
+        }*/
     }
 
-    public double getProbAtNavpoint(NavPoint p){
+    public double getProbAtNavpoint(NavPoint p) {
         return _positionEstimation.getAsDouble(0, _navpointToIndex.get(p.getId()));
     }
 
-    public double getMaxProb(){
+    public double getMaxProb() {
         return getProbAtNavpoint(getPointWithMaxProb());
     }
+
+    public void resetProbabilities() {
+        _positionEstimation.fill(Calculation.Ret.NEW, 1.0 / (double) _positionEstimation.getSize(1));
+    }
+
+    public List<Item> getSpawnedItems() {
+        if(_bot.getLevelGeometry() != null && _bot.getLevelGeometry().isLoaded()) {
+            return _spawnedItems.values()
+                                .stream()
+                                .filter(i -> i.getCurrentSpawnProb() > 0.9)
+                                .map(SpawnItemHelper::getItem)
+                                .collect(Collectors.toList());
+        }
+        else {
+            return new ArrayList<>(_bot.getItems()
+                                       .getSpawnedItems()
+                                       .values());
+
+        }
+    }
+
 }

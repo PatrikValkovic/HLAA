@@ -34,7 +34,7 @@ public class DodgeBot extends UT2004BotModuleController {
     	_knowledge = new KnowledgeBase(this);
     	ReflexBehavior reflex = new ReflexBehavior(this, 100.0);
     	reflex.addReflex(new DodgeReflex(this));
-    	_behavior = new BehaviorManager();
+    	_behavior = new BehaviorManager(log);
         _behavior.addBehavior(new PickingBehavior(this, 10.0, _knowledge))
                  .addBehavior(reflex);
     }

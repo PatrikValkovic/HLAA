@@ -12,7 +12,7 @@ import hlaa.duelbot.behavior.*;
 import java.util.logging.Level;
 
 @AgentScoped
-public class LookBehindReflexBot extends UT2004BotModuleController {
+public class ClosePickingBot extends UT2004BotModuleController {
 
     private BehaviorManager _behavior;
     private KnowledgeBase _knowledge;
@@ -23,52 +23,55 @@ public class LookBehindReflexBot extends UT2004BotModuleController {
      * @return instance of {@link Initialize}
      */
     @Override
-    public Initialize getInitializeCommand() {  
-    	return new Initialize().setName(this.getClass().getSimpleName()).setSkin("Ophelia").setDesiredSkill(6);
+    public Initialize getInitializeCommand() {
+        return new Initialize().setName(this.getClass().getSimpleName()).setSkin("Ophelia").setDesiredSkill(6);
     }
 
     @Override
     public void botInitialized(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init) {
-    	bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
+        bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
 
-    	_knowledge = new KnowledgeBase(this);
-    	_behavior = new BehaviorManager(log);
-        ReflexBehavior reflex = new ReflexBehavior(this, 100.0);
-    	_behavior.addBehavior(reflex).addBehavior(new PursueBehavior(this, 10.0, _knowledge));
-    	reflex.addReflex(new LookBehindReflex(this));
+        _knowledge = new KnowledgeBase(this);
+        _behavior = new BehaviorManager(log);
+        _behavior.addBehavior(new PickingBehavior(this, 0.0, _knowledge));
+        _behavior.addBehavior(new ReflexBehavior(this, 100.0)
+                .addReflex(new NearItemPickupReflex(this))
+                .addReflex(new DodgeReflex(this)));
     }
-    
+
     @Override
     public void beforeFirstLogic() {
     }
-    
+
     // ====================
     // BOT MIND MAIN METHOD
     // ====================
-        
+
     @Override
     public void logic() throws PogamutException {
-    	// FOLLOWS THE BOT'S LOGIC
+        // FOLLOWS THE BOT'S LOGIC
         _knowledge.updateKnowledge();
 
         _behavior.execute();
     }
 
-    @EventListener(eventClass= ItemPickedUp.class)
+    @EventListener(eventClass = ItemPickedUp.class)
     public void itemPickedUp(ItemPickedUp event) {
         if (info.getSelf() == null) return; // ignore the first equipment...
         Item pickedUp = items.getItem(event.getId());
         if (pickedUp == null) return; // ignore unknown items
+        getLog().info("Picked up " + pickedUp.getType().getName());
     }
-    
+
     // ===========
     // MAIN METHOD
     // ===========
-    
+
     public static void main(String args[]) throws PogamutException {
         new UT2004BotRunner(     // class that wrapps logic for bots executions, suitable to run single bot in single JVM
-                LookBehindReflexBot.class,   // which UT2004BotController it should instantiate
-                (new Object(){}).getClass().getEnclosingClass().getSimpleName()        // what name the runner should be using
+                ClosePickingBot.class,   // which UT2004BotController it should instantiate
+                (new Object() {
+                }).getClass().getEnclosingClass().getSimpleName()        // what name the runner should be using
         ).setMain(true)          // tells runner that is is executed inside MAIN method, thus it may block the thread and watch whether agent/s are correctly executed
          .startAgents(1);        // tells the runner to start 2 agents
     }

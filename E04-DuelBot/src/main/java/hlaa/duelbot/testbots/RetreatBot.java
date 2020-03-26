@@ -33,7 +33,7 @@ public class RetreatBot extends UT2004BotModuleController {
         bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
 
         _knowledge = new KnowledgeBase(this);
-        _behavior = new BehaviorManager();
+        _behavior = new BehaviorManager(log);
         _behavior.addBehavior(new LookAroundBehavior(this))
                  .addBehavior(new RetreatBehavior(this, 10.0));
     }

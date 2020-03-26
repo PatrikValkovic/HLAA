@@ -35,7 +35,7 @@ public class DrawNavmeshBot extends UT2004BotModuleController {
     	bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
 
     	_knowledge = new KnowledgeBase(this);
-    	_behavior = new BehaviorManager();
+    	_behavior = new BehaviorManager(log);
     }
     
     @Override

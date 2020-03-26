@@ -35,7 +35,7 @@ public class LookAroundBot extends UT2004BotModuleController {
     public void botInitialized(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init) {
     	bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
 
-    	this._behaviorManager = new BehaviorManager();
+    	this._behaviorManager = new BehaviorManager(log);
     	this._behaviorManager.addBehavior(
     	        new LookAroundBehavior(this)
         );

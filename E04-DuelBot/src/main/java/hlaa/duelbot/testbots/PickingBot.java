@@ -9,7 +9,9 @@ import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.exception.PogamutException;
 import hlaa.duelbot.KnowledgeBase;
 import hlaa.duelbot.behavior.BehaviorManager;
+import hlaa.duelbot.behavior.DodgeReflex;
 import hlaa.duelbot.behavior.PickingBehavior;
+import hlaa.duelbot.behavior.ReflexBehavior;
 import java.util.logging.Level;
 
 @AgentScoped
@@ -33,8 +35,9 @@ public class PickingBot extends UT2004BotModuleController {
     	bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
 
     	_knowledge = new KnowledgeBase(this);
-    	_behavior = new BehaviorManager();
+    	_behavior = new BehaviorManager(log);
     	_behavior.addBehavior(new PickingBehavior(this, 0.0, _knowledge));
+    	_behavior.addBehavior(new ReflexBehavior(this, 100.0).addReflex(new DodgeReflex(this)));
     }
     
     @Override
@@ -59,6 +62,12 @@ public class PickingBot extends UT2004BotModuleController {
         Item pickedUp = items.getItem(event.getId());
         if (pickedUp == null) return; // ignore unknown items
         getLog().info("Picked up " + pickedUp.getType().getName());
+    }
+
+    @EventListener(eventClass= GlobalChat.class)
+    public void globalChat(GlobalChat event) {
+        if(event.getText().equals("reset"))
+            bot.respawn();
     }
     
     // ===========

@@ -32,7 +32,7 @@ public class PursueBot extends UT2004BotModuleController {
     	bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
 
     	_knowledge = new KnowledgeBase(this);
-    	_behavior = new BehaviorManager();
+    	_behavior = new BehaviorManager(log);
     	_behavior.addBehavior(new PursueBehavior(this, _knowledge))
                  .addBehavior(new ReflexBehavior(this, 100).addReflex(new DodgeReflex(this)));
 

@@ -1,6 +1,7 @@
 package hlaa.duelbot.behavior;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
+import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.pathfollowing.UT2004AcceleratedPathExecutor;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import java.awt.*;
@@ -25,6 +26,10 @@ public class DodgeReflex extends BaseReflex {
     @SuppressWarnings("rawtypes")
     @Override
     public void execute() {
+        //disable for this one fucking place that always cause it to jump away, as the bot probably dont know how to aim.....
+        if(_bot.getInfo().getLocation().getDistance(new Location(1000,1500,-200)) < 300)
+            return;
+
         try {
             UT2004AcceleratedPathExecutor executor = (UT2004AcceleratedPathExecutor) _bot.getNMNav().getPathExecutor();
             List path = executor.getPath();

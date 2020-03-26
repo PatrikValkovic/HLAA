@@ -1,6 +1,7 @@
 package hlaa.duelbot;
 
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.utils.Heatup;
 import hlaa.duelbot.behavior.*;
 import hlaa.duelbot.utils.Inventory;
 import hlaa.duelbot.utils.Navigation;
@@ -16,6 +17,7 @@ public class MainDecisions implements IBehaviorProvider {
     private final PickingBehavior _picking;
     private final PursueBehavior _pursue;
     private final RetreatBehavior _retreat;
+    private final Heatup _pursuitHeatup = new Heatup(6000);
 
     public MainDecisions(UT2004BotModuleController bot, KnowledgeBase knowledge){
         _bot = bot;
@@ -31,12 +33,13 @@ public class MainDecisions implements IBehaviorProvider {
     @Override
     public IBehavior get() {
         if(_bot.getPlayers().getNearestVisiblePlayer() != null){
+            _pursuitHeatup.heat();
             if(_bot.getInfo().getHealth() < 20)
                 return _retreat;
             if(Inventory.getWeaponStrengthForDistance(
                     _bot.getWeaponry(),
                     WeaponPrefs.WEAPON_PREFS,
-                    Navigation.directDistance(_bot, _bot.getPlayers().getNearestVisiblePlayer().getLocation())) < 0.001)
+                    Navigation.directDistance(_bot, _bot.getPlayers().getNearestVisiblePlayer().getLocation())) < 0.0025)
                 return _retreat;
             return _combat;
         }
@@ -45,9 +48,11 @@ public class MainDecisions implements IBehaviorProvider {
                 return _pursue;
             if(_bot.getInfo().getHealth() < 40)
                 return _medkit;
-            if(Inventory.hasAllRangeWeapon(_bot.getWeaponry()))
+            if(Inventory.hasAllRangeWeapon(_bot.getWeaponry()) && _pursuitHeatup.isHot())
                 return _pursue;
-            return _picking;
+            if(_picking.itemsTopickup().size() > 0)
+                return _picking;
+            return _pursue;
         }
     }
 }

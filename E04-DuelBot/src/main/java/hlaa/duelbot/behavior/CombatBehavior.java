@@ -67,6 +67,7 @@ public class CombatBehavior extends BaseBehavior {
 
     @Override
     public void execute() {
+        _bot.getNavigation().stopNavigation();
         Location myLocation = _bot.getInfo().getLocation();
         Player opponent = _bot.getPlayers().getNearestVisiblePlayer();
         Location opponentLocation = opponent.getLocation();

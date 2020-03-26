@@ -12,7 +12,7 @@ import hlaa.duelbot.behavior.*;
 import java.util.logging.Level;
 
 @AgentScoped
-public class LookBehindReflexBot extends UT2004BotModuleController {
+public class FollowingBot extends UT2004BotModuleController {
 
     private BehaviorManager _behavior;
     private KnowledgeBase _knowledge;
@@ -33,9 +33,8 @@ public class LookBehindReflexBot extends UT2004BotModuleController {
 
     	_knowledge = new KnowledgeBase(this);
     	_behavior = new BehaviorManager(log);
-        ReflexBehavior reflex = new ReflexBehavior(this, 100.0);
-    	_behavior.addBehavior(reflex).addBehavior(new PursueBehavior(this, 10.0, _knowledge));
-    	reflex.addReflex(new LookBehindReflex(this));
+    	_behavior.addBehavior(new FollowingBehaviour(this, 10.0, _knowledge))
+                 .addBehavior(new LookAroundBehavior(this, 0.0));
     }
     
     @Override
@@ -54,11 +53,10 @@ public class LookBehindReflexBot extends UT2004BotModuleController {
         _behavior.execute();
     }
 
-    @EventListener(eventClass= ItemPickedUp.class)
-    public void itemPickedUp(ItemPickedUp event) {
-        if (info.getSelf() == null) return; // ignore the first equipment...
-        Item pickedUp = items.getItem(event.getId());
-        if (pickedUp == null) return; // ignore unknown items
+    @EventListener(eventClass= GlobalChat.class)
+    public void globalChat(GlobalChat event) {
+        if(event.getText().equals("reset"))
+            bot.respawn();
     }
     
     // ===========
@@ -67,7 +65,7 @@ public class LookBehindReflexBot extends UT2004BotModuleController {
     
     public static void main(String args[]) throws PogamutException {
         new UT2004BotRunner(     // class that wrapps logic for bots executions, suitable to run single bot in single JVM
-                LookBehindReflexBot.class,   // which UT2004BotController it should instantiate
+                FollowingBot.class,   // which UT2004BotController it should instantiate
                 (new Object(){}).getClass().getEnclosingClass().getSimpleName()        // what name the runner should be using
         ).setMain(true)          // tells runner that is is executed inside MAIN method, thus it may block the thread and watch whether agent/s are correctly executed
          .startAgents(1);        // tells the runner to start 2 agents

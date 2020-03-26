@@ -21,6 +21,7 @@ public class MedkitBehavior extends BaseBehavior {
         super(bot, knowledge);
         _mapview = new CoverIPFMavView(knowledge, _bot.getVisibility());
     }
+
     public MedkitBehavior(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
         _mapview = new CoverIPFMavView(knowledge, _bot.getVisibility());
@@ -35,21 +36,19 @@ public class MedkitBehavior extends BaseBehavior {
     public void execute() {
         //my navpoint
         NavPoint myNavpoint = _bot.getNavPoints().getNavPoints()
-                .values()
-                .stream()
-                .min(Comparator.comparingDouble(n -> n.getLocation().getDistance(_bot.getInfo().getLocation())))
-                .get();
+                                  .values()
+                                  .stream()
+                                  .min(Comparator.comparingDouble(n -> n.getLocation().getDistance(_bot.getInfo().getLocation())))
+                                  .get();
 
         //decide what to pickup
-        Item toPickup = _bot.getItems()
-                            .getSpawnedItems(UT2004ItemType.Category.HEALTH)
-                            .values()
-                            .stream()
-                            .filter(i -> Navigation.canReachNavpoint(_bot.getNMNav(), _bot.getInfo().getLocation(), i.getLocation()))
-                            .min(Comparator.comparingDouble(i ->
-                                    i.getLocation().getDistance(_bot.getInfo().getLocation())
-                            )).get();
-        if(toPickup == null)
+        Item toPickup = _knowledge.getSpawnedItems()
+                                  .stream()
+                                  .filter(i -> Navigation.canReachNavpoint(_bot.getNMNav(), _bot.getInfo().getLocation(), i.getLocation()))
+                                  .min(Comparator.comparingDouble(i ->
+                                          i.getLocation().getDistance(_bot.getInfo().getLocation())
+                                  )).get();
+        if (toPickup == null)
             return;
 
 
@@ -60,7 +59,7 @@ public class MedkitBehavior extends BaseBehavior {
         );
 
         //draw path
-        if(true){
+        if (true) {
             List<NavPoint> p = Navigation.getPath(path);
             for (int i = 0; i < p.size() - 1; i++)
                 _bot.getDraw().drawLine(Color.ORANGE, p.get(i).getLocation(), p.get(i + 1).getLocation());
@@ -68,10 +67,10 @@ public class MedkitBehavior extends BaseBehavior {
 
         //get rid of the first point if bot passed it
         List<NavPoint> p = Navigation.getPath(path);
-        if(p.size() >= 2){
+        if (p.size() >= 2) {
             double distanceToBoth = Navigation.directDistance(_bot, p.get(0)) + Navigation.directDistance(_bot, p.get(1));
             double distanceBetween = Navigation.directDistance(p.get(0), p.get(1));
-            if(distanceToBoth < distanceBetween + MAX_PATH_DIFF){
+            if (distanceToBoth < distanceBetween + MAX_PATH_DIFF) {
                 p.remove(0);
             }
         }
