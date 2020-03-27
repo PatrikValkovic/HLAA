@@ -184,8 +184,12 @@ public class KnowledgeBase {
             Set<SpawnItemHelper> dontSeeItems = new HashSet<>(shouldSeeItems);
             dontSeeItems.removeIf(i -> seeItems.contains(i.getItem()));
             this.getSpawnedItems().stream()
-                .filter(i -> Navigation.directDistance(_bot, i.getLocation()) < 200)
-                .forEach(i -> dontSeeItems.add(_spawnedItems.get(i.getId())));
+                .filter(i -> Navigation.directDistance(_bot, i.getLocation()) < 100)
+                .forEach(i -> {
+                    SpawnItemHelper itemHelper = _spawnedItems.get(i.getId());
+                    if(itemHelper != null)
+                        dontSeeItems.add(itemHelper);
+                });
 
             if(true){
                 seeItems.forEach(item -> _bot.getDraw().drawLine(Color.PINK, _bot.getInfo(), item));
@@ -257,11 +261,15 @@ public class KnowledgeBase {
 
     public List<Item> getSpawnedItems() {
         if(_bot.getLevelGeometry() != null && _bot.getLevelGeometry().isLoaded()) {
-            return _spawnedItems.values()
+            List<Item> basedOnInternal = _spawnedItems.values()
                                 .stream()
                                 .filter(i -> i.getCurrentSpawnProb() > 0.9)
+                                .filter(i -> Navigation.directDistance(_bot, i.getLocation()) > 300)
                                 .map(SpawnItemHelper::getItem)
                                 .collect(Collectors.toList());
+            List<Item> visible = new ArrayList<>(_bot.getItems().getVisibleItems().values());
+            visible.addAll(basedOnInternal);
+            return visible;
         }
         else {
             return new ArrayList<>(_bot.getItems()

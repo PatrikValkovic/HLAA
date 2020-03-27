@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class BehaviorManager {
+public class BehaviorManager implements IBehavior {
 
     private List<IBehaviorProvider> _behaviors = new LinkedList<>();
     private List<IBehavior> _previouslyActivated = new LinkedList<>();
@@ -39,5 +39,22 @@ public class BehaviorManager {
         ));
         _previouslyActivated = nowActivated;
         _previouslyActivated.forEach(IBehavior::execute);
+    }
+
+
+    @Override
+    public boolean isFiring() {
+        return _behaviors.stream().map(IBehaviorProvider::get).anyMatch(IBehavior::isFiring);
+    }
+
+    @Override
+    public double priority() {
+        return _behaviors.stream().map(IBehaviorProvider::get).mapToDouble(IBehavior::priority).average().orElse(0);
+    }
+
+    @Override
+    public void terminate() {
+        _previouslyActivated.forEach(IBehavior::terminate);
+        _previouslyActivated.clear();
     }
 }

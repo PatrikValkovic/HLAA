@@ -10,7 +10,7 @@ import java.util.List;
 public class DodgeReflex extends BaseReflex {
 
     private static final double MIN_DODGE_DISTANCE = 500.0;
-    private static final double MAX_HEIGHT_DIFFERENCE = 50.0;
+    private static final double MAX_HEIGHT_DIFFERENCE = 40.0;
 
     public DodgeReflex(UT2004BotModuleController bot) {
         super(bot);

@@ -3,7 +3,9 @@ package hlaa.duelbot.behavior;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import hlaa.duelbot.KnowledgeBase;
+import hlaa.duelbot.utils.Inventory;
 import hlaa.duelbot.utils.Navigation;
+import hlaa.duelbot.utils.WeaponPrefs;
 
 public class PursueBehavior extends BaseBehavior {
 
@@ -39,5 +41,10 @@ public class PursueBehavior extends BaseBehavior {
         else {
             _bot.getNavigation().setFocus(null);
         }
+
+        //set weapon
+        CombatBehavior.WeaponPref pref =
+                Inventory.bestWeapon(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, Navigation.directDistance(_bot, p));
+        _bot.getWeaponry().changeWeapon(pref.getWeapon());
     }
 }

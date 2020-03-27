@@ -64,10 +64,16 @@ public class DuelBot extends UT2004BotModuleController {
     @Override
     public void logic() throws PogamutException {
         // FOLLOWS THE BOT'S LOGIC
-        _measure.start();
-        _knowledge.updateKnowledge();
-        _behaviorManager.execute();
-        _measure.end(true, 100, log);
+        try {
+            _measure.start();
+            _knowledge.updateKnowledge();
+            _behaviorManager.execute();
+            _measure.end(true, 100, log);
+        }
+        catch(Exception e){
+            log.severe("Exception");
+            e.printStackTrace();
+        }
     }
 
     // ==============

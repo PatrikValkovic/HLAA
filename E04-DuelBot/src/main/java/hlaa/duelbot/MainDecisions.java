@@ -12,7 +12,7 @@ public class MainDecisions implements IBehaviorProvider {
     private final UT2004BotModuleController _bot;
     private final KnowledgeBase _knowledge;
 
-    private final CombatBehavior _combat;
+    private final BehaviorManager _combat;
     private final MedkitBehavior _medkit;
     private final PickingBehavior _picking;
     private final PursueBehavior _pursue;
@@ -23,7 +23,9 @@ public class MainDecisions implements IBehaviorProvider {
         _bot = bot;
         _knowledge = knowledge;
 
-        _combat = new CombatBehavior(_bot, _knowledge);
+        _combat = new BehaviorManager(_bot.getLog())
+                .addBehavior(new CombatBehavior(_bot, 100, knowledge))
+                .addBehavior(new CombatMovementBehaviour(_bot, knowledge));
         _medkit = new MedkitBehavior(_bot, _knowledge);
         _picking = new PickingBehavior(_bot, _knowledge);
         _pursue = new PursueBehavior(_bot, _knowledge);

@@ -187,4 +187,18 @@ public class Inventory {
                 (isUDamage(type) && needUDamage(info)) ||
                 (isAmmo(type) && needAmmo(weaponry, type));
     }
+
+    public static double getOptimalDistance(Weaponry weaponry, double currentDistance, double range) {
+        List<Double> distances
+                = getUsableWeapons(weaponry).stream()
+                                            .flatMap(w -> WeaponPrefs.WEAPON_PREFS.stream().filter(pref -> pref.getWeapon().equals(w)))
+                                            .map(CombatBehavior.WeaponPref::getPriorityMean)
+                                            .collect(Collectors.toList());
+        distances.add(range - currentDistance);
+        distances.add(range + currentDistance);
+
+        return distances.stream()
+                        .max(Comparator.comparingDouble(d -> getWeaponStrengthForDistance(weaponry, WeaponPrefs.WEAPON_PREFS, d)))
+                        .orElse(0.0);
+    }
 }
