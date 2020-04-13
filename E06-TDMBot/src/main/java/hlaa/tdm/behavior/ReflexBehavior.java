@@ -1,6 +1,7 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,10 +10,10 @@ public class ReflexBehavior extends BaseBehavior {
     private List<IReflex> _reflexes = new LinkedList<>();
 
 
-    public ReflexBehavior(UT2004BotModuleController bot) {
+    public ReflexBehavior(UT2004BotTCController bot) {
         super(bot, 100.0);
     }
-    public ReflexBehavior(UT2004BotModuleController bot, double priority) {
+    public ReflexBehavior(UT2004BotTCController bot, double priority) {
         super(bot, priority);
     }
 

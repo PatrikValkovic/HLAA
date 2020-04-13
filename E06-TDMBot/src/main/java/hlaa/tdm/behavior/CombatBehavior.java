@@ -1,10 +1,10 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import cz.cuni.amis.utils.Cooldown;
 import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.Inventory;
@@ -41,16 +41,16 @@ public class CombatBehavior extends BaseBehavior {
     private static final double ROCKET_MINUS = 40.0;
     private final Cooldown _sniper_cooldown = new Cooldown(2000);
 
-    public CombatBehavior(UT2004BotModuleController bot) {
+    public CombatBehavior(UT2004BotTCController bot) {
         super(bot);
     }
-    public CombatBehavior(UT2004BotModuleController bot, double priority) {
+    public CombatBehavior(UT2004BotTCController bot, double priority) {
         super(bot, priority);
     }
-    public CombatBehavior(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+    public CombatBehavior(UT2004BotTCController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
     }
-    public CombatBehavior(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
+    public CombatBehavior(UT2004BotTCController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
     }
 
@@ -79,7 +79,7 @@ public class CombatBehavior extends BaseBehavior {
             exception.add(UT2004ItemType.LIGHTNING_GUN);
         }
 
-        WeaponPref pref = Inventory.bestWeapon(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, playerDistance, exception);
+        WeaponPref pref = Inventory.bestWeaponForDistance(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, playerDistance, exception);
         _bot.getLog().info("Decided for " + pref.getWeapon().getName() + " using " + (pref.isPrimaryMode() ? "primary" : "secondary"));
 
         Location shootTarget = opponentLocation;
@@ -88,7 +88,7 @@ public class CombatBehavior extends BaseBehavior {
             if(_bot.getLevelGeometry() != null && !Navigation.canSee(_bot.getLevelGeometry(), myLocation, shootTarget)){
                 shootTarget = opponentLocation;
                 exception.add(UT2004ItemType.ROCKET_LAUNCHER);
-                pref = Inventory.bestWeapon(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, playerDistance, exception);
+                pref = Inventory.bestWeaponForDistance(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, playerDistance, exception);
                 _bot.getLog().info("Change to " + pref.getWeapon().getName() + " because dont see floor");
             }
         }

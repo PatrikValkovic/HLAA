@@ -6,8 +6,10 @@ import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.AgentInfo;
 import cz.cuni.amis.pogamut.ut2004.agent.module.utils.UT2004Skins;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004Bot;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotKilled;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GlobalChat;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ItemPickedUp;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerKilled;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.exception.PogamutException;
@@ -15,6 +17,9 @@ import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.behavior.BehaviorManager;
 import hlaa.tdm.behavior.LookAroundBehavior;
 import hlaa.tdm.behavior.PickingBehavior;
+import hlaa.tdm.messages.TCDontSeeItem;
+import hlaa.tdm.messages.TCGoingToPick;
+import hlaa.tdm.messages.TCSeeItem;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -23,7 +28,7 @@ import java.util.logging.Level;
  * Version: 0.0.1
  */
 @AgentScoped
-public class SinglePickingBot extends UT2004BotTCController<UT2004Bot> {
+public class PickingBot extends UT2004BotTCController<UT2004Bot> {
 
 	private static AtomicInteger BOT_COUNT = new AtomicInteger(0);
 
@@ -55,7 +60,7 @@ public class SinglePickingBot extends UT2004BotTCController<UT2004Bot> {
     	// IT IS FORBIDDEN BY COMPETITION RULES TO ALTER ANYTHING EXCEPT NAME & SKIN VIA INITIALIZE COMMAND
 		// Change the name of your bot, e.g., Jakub Gemrot would rewrite this to: targetName = "JakubGemrot"
 		int botInstance = BOT_COUNT.getAndIncrement();
-		String targetName = SinglePickingBot.class.getSimpleName() + botInstance;
+		String targetName = PickingBot.class.getSimpleName() + botInstance;
 		int targetTeam = AgentInfo.TEAM_RED;
         return new Initialize().setName(targetName)
 							   .setSkin(UT2004Skins.SKINS[0])
@@ -71,7 +76,7 @@ public class SinglePickingBot extends UT2004BotTCController<UT2004Bot> {
     // ==============
     
     /**
-     * Method that is executed only once before the first {@link SinglePickingBot#logic()}
+     * Method that is executed only once before the first {@link PickingBot#logic()}
      */
     @SuppressWarnings("unused")
 	@Override
@@ -117,9 +122,39 @@ public class SinglePickingBot extends UT2004BotTCController<UT2004Bot> {
 	public void itemPickedUp(ItemPickedUp event){
     	if(_knowledge != null)
     		_knowledge.getItemSpawnedKnowledge().pickedUp(event.getId());
+    	getTCClient().sendToTeam(new TCDontSeeItem(event.getId()));
 	}
 
-    // ===========
+	@EventListener(eventClass = TCSeeItem.class)
+	public void seeItem(TCSeeItem event){
+    	if(_knowledge != null)
+			_knowledge.getItemSpawnedKnowledge().seeItem(event.getItemId());
+	}
+
+	@EventListener(eventClass = TCDontSeeItem.class)
+	public void dontSeeItem(TCDontSeeItem event){
+		if(_knowledge != null)
+			_knowledge.getItemSpawnedKnowledge().dontSeeItem(event.getItemId());
+	}
+
+	@EventListener(eventClass = TCGoingToPick.class)
+	public void goingToPick(TCGoingToPick event){
+		if(_knowledge != null)
+			_knowledge.getOtherPickingKnowledge().otherGoingToPick(
+					getItems().getItem(event.getItemId()),
+					event.getDistance(),
+					event.getBotId()
+			);
+	}
+
+	@EventListener(eventClass = BotKilled.class)
+	public void botKilled(BotKilled event){
+    	if(_knowledge != null)
+    		_knowledge.reset();
+	}
+
+
+	// ===========
     // MAIN METHOD
     // ===========
     
@@ -133,10 +168,10 @@ public class SinglePickingBot extends UT2004BotTCController<UT2004Bot> {
     	// Starts N agents of the same type at once
     	// WHEN YOU WILL BE SUBMITTING YOUR CODE, MAKE SURE THAT YOU RESET NUMBER OF STARTED AGENTS TO '1' !!!
     	// => during the development, please use {@link Starter_Bots} instead to ensure you will leave "1" in here
-    	new UT2004BotRunner(SinglePickingBot.class, SinglePickingBot.class.getSimpleName())
+    	new UT2004BotRunner(PickingBot.class, PickingBot.class.getSimpleName())
 				.setMain(true)
 				.setLogLevel(Level.WARNING)
-				.startAgents(1);
+				.startAgents(5);
     }
     
 }

@@ -1,10 +1,11 @@
 package hlaa.tdm;
 
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.knowledge.ItemDistancesKnowledge;
 import hlaa.tdm.knowledge.ItemSpawnKnowledge;
+import hlaa.tdm.knowledge.OthersPickingKnowledge;
 import hlaa.tdm.utils.DeltaCounter;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,11 +22,12 @@ public class KnowledgeBase {
     private static final double ZERO_NAVPOINTS_IN_DISTANCE = 150.0;
     private static final double MC_PROB_MULTIPLIER = 0.12;
 
-    private final UT2004BotModuleController _bot;
+    private final UT2004BotTCController _bot;
     private final DeltaCounter _delta = new DeltaCounter();
 
     private final ItemSpawnKnowledge _itemSpawn;
     private final ItemDistancesKnowledge _itemDistances;
+    private final OthersPickingKnowledge _othersPicking;
 
     private SparseMatrix _movementMarkovChain;
     private Matrix2D _positionEstimation;
@@ -33,10 +35,11 @@ public class KnowledgeBase {
     private Map<UnrealId, Integer> _navpointToIndex;
 
 
-    public KnowledgeBase(UT2004BotModuleController bot) {
+    public KnowledgeBase(UT2004BotTCController bot) {
         this._bot = bot;
         _itemSpawn = new ItemSpawnKnowledge(bot);
         _itemDistances = new ItemDistancesKnowledge(bot);
+        _othersPicking = new OthersPickingKnowledge(bot, _itemSpawn);
 
         createMarkovChain();
         createPositionMatrix();
@@ -202,6 +205,11 @@ public class KnowledgeBase {
         _positionEstimation.fill(Calculation.Ret.NEW, 1.0 / (double) _positionEstimation.getSize(1));
     }
 
+    public void reset() {
+        _itemSpawn.reset();
+        _othersPicking.reset();
+    }
+
     public ItemSpawnKnowledge getItemSpawnedKnowledge(){
         return _itemSpawn;
     }
@@ -209,5 +217,10 @@ public class KnowledgeBase {
     public ItemDistancesKnowledge getItemDistancesKnowledge() {
         return _itemDistances;
     }
+
+    public OthersPickingKnowledge getOtherPickingKnowledge() {
+        return _othersPicking;
+    }
+
 
 }

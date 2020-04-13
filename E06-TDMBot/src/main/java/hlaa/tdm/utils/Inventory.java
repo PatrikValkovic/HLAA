@@ -27,33 +27,6 @@ public class Inventory {
                        .collect(Collectors.toSet());
     }
 
-    public static boolean needItem(Weaponry weaponry, AgentInfo info, ItemType item) {
-        return needWeapon(weaponry, item) ||
-                needHealthPack(info, item) ||
-                needShieldPack(info, item) ||
-                UT2004ItemType.U_DAMAGE_PACK.equals(item);
-    }
-
-    public static boolean needWeapon(Weaponry weaponry, ItemType type) {
-        return isWeapon(type) &&
-                (!weaponry.hasWeapon(type) ||
-                        weaponry.getPrimaryWeaponAmmo(type) < weaponry.getMaxAmmo(weaponry.getPrimaryWeaponAmmoType(type)) ||
-                        weaponry.getSecondaryWeaponAmmo(type) < weaponry.getMaxAmmo(weaponry.getSecondaryWeaponAmmoType(type))
-                );
-    }
-
-    public static boolean needHealthPack(AgentInfo info, ItemType type) {
-        return isHealth(type) &&
-                (UT2004ItemType.HEALTH_PACK.equals(type) && info.getHealth() < 100) ||
-                (UT2004ItemType.MINI_HEALTH_PACK.equals(type) && info.getHealth() < 199) ||
-                (UT2004ItemType.SUPER_HEALTH_PACK.equals(type) && info.getHealth() < 100); //TODO not sure
-    }
-
-    public static boolean needShieldPack(AgentInfo info, ItemType type) {
-        return isShield(type) && info.getArmor() < 150;
-        //return UT2004ItemType.Category.SHIELD.getTypes().contains(type) &&
-        //        info.getArmor() < 150;
-    }
 
     public static boolean hasLongRangeWeapon(Weaponry weaponry) {
         return !Collections.disjoint(
@@ -130,11 +103,11 @@ public class Inventory {
                           .orElse(0.0);
     }
 
-    public static CombatBehavior.WeaponPref bestWeapon(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance) {
-        return bestWeapon(available, weaponPrefs, distance, new HashSet<>());
+    public static CombatBehavior.WeaponPref bestWeaponForDistance(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance) {
+        return bestWeaponForDistance(available, weaponPrefs, distance, new HashSet<>());
     }
 
-    public static CombatBehavior.WeaponPref bestWeapon(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance, Set<ItemType> except) {
+    public static CombatBehavior.WeaponPref bestWeaponForDistance(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance, Set<ItemType> except) {
         return weaponPrefs.stream()
                           .filter(i -> available.hasWeapon(i.getWeapon()))
                           .filter(i -> !except.contains(i.getWeapon()))
@@ -164,10 +137,6 @@ public class Inventory {
         return UT2004ItemType.U_DAMAGE_PACK.equals(type);
     }
 
-    public static boolean needUDamage(AgentInfo info) {
-        return true;
-    }
-
     public static boolean isAmmo(ItemType type) {
         return UT2004ItemType.Category.AMMO.getTypes().contains(type);
     }
@@ -185,6 +154,32 @@ public class Inventory {
                 (isUDamage(type) && needUDamage(info)) ||
                 (isAmmo(type) && needAmmo(weaponry, type));
     }
+
+    public static boolean needWeapon(Weaponry weaponry, ItemType type) {
+        return isWeapon(type) &&
+                (!weaponry.hasWeapon(type) ||
+                        weaponry.getPrimaryWeaponAmmo(type) < weaponry.getMaxAmmo(weaponry.getPrimaryWeaponAmmoType(type)) ||
+                        weaponry.getSecondaryWeaponAmmo(type) < weaponry.getMaxAmmo(weaponry.getSecondaryWeaponAmmoType(type))
+                );
+    }
+
+    public static boolean needHealthPack(AgentInfo info, ItemType type) {
+        return isHealth(type) &&
+                (UT2004ItemType.HEALTH_PACK.equals(type) && info.getHealth() < 100) ||
+                (UT2004ItemType.MINI_HEALTH_PACK.equals(type) && info.getHealth() < 199) ||
+                (UT2004ItemType.SUPER_HEALTH_PACK.equals(type) && info.getHealth() < 100); //TODO not sure
+    }
+
+    public static boolean needShieldPack(AgentInfo info, ItemType type) {
+        return isShield(type) && info.getArmor() < 150;
+        //return UT2004ItemType.Category.SHIELD.getTypes().contains(type) &&
+        //        info.getArmor() < 150;
+    }
+
+    public static boolean needUDamage(AgentInfo info) {
+        return !info.hasUDamage();
+    }
+
 
     public static double getOptimalDistance(Weaponry weaponry, double currentDistance, double range) {
         List<Double> distances

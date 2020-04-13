@@ -4,6 +4,9 @@ import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
+import hlaa.tdm.messages.TCDontSeeItem;
+import hlaa.tdm.messages.TCSeeItem;
 import hlaa.tdm.utils.Navigation;
 import hlaa.tdm.utils.SpawnItemHelper;
 import java.awt.*;
@@ -16,10 +19,10 @@ import java.util.stream.Collectors;
 public class ItemSpawnKnowledge {
     private static final boolean DRAW = true;
 
-    private final UT2004BotModuleController _bot;
+    private final UT2004BotTCController _bot;
     private final Map<UnrealId, SpawnItemHelper> _spawnedItems;
 
-    public ItemSpawnKnowledge(UT2004BotModuleController _bot) {
+    public ItemSpawnKnowledge(UT2004BotTCController _bot) {
         this._bot = _bot;
 
         _spawnedItems = _bot.getItems()
@@ -48,6 +51,7 @@ public class ItemSpawnKnowledge {
                                                 .keySet()
                                                 .stream()
                                                 .map(_spawnedItems::get)
+                                                .filter(Objects::nonNull)
                                                 .collect(Collectors.toSet());
 
             // create set of items that the bot dont see
@@ -61,13 +65,22 @@ public class ItemSpawnKnowledge {
             }
 
             dontSeeItems.forEach(helper -> {
-                helper.setLastUnseen(Instant.now());
+                this.dontSeeItem(helper.getItem().getId());
+                _bot.getTCClient().sendToTeam(new TCDontSeeItem(helper.getItem().getId()));
             });
 
             seeItems.forEach(helper -> {
-                helper.setLastSeen(Instant.now());
+                this.seeItem(helper.getItem().getId());
+                _bot.getTCClient().sendToTeam(new TCSeeItem(helper.getItem().getId()));
             });
         }
+    }
+
+    public void reset(){
+        _spawnedItems.forEach((key, helper) -> {
+            helper.setLastUnseen(Instant.now());
+            helper.setSpawnProb(0);
+        });
     }
 
     public List<Item> getSpawnedItems() {
@@ -86,13 +99,23 @@ public class ItemSpawnKnowledge {
         }
     }
 
-    public void pickedUp(UnrealId id){
+    public void pickedUp(UnrealId id) {
         SpawnItemHelper helper = _spawnedItems.get(id);
-        if(helper != null){
+        if (helper != null) {
             helper.setLastSeen(Instant.now().minus(1, ChronoUnit.MILLIS));
             helper.setLastUnseen(Instant.now());
             helper.setSpawnProb(0);
         }
+    }
+
+    public void seeItem(UnrealId id){
+        if(_spawnedItems.containsKey(id))
+            _spawnedItems.get(id).setLastSeen(Instant.now());
+    }
+
+    public void dontSeeItem(UnrealId id){
+        if(_spawnedItems.containsKey(id))
+            _spawnedItems.get(id).setLastUnseen(Instant.now());
     }
 
 }

@@ -4,12 +4,13 @@ import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.NavMeshClearanceComputer;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.IncomingProjectile;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import java.util.Optional;
 import math.geom2d.Vector2D;
 
 public class RocketAvoidanceReflex extends BaseReflex {
 
-    public RocketAvoidanceReflex(UT2004BotModuleController bot) {
+    public RocketAvoidanceReflex(UT2004BotTCController bot) {
         super(bot);
     }
 

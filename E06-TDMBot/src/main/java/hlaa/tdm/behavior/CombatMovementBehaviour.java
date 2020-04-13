@@ -4,6 +4,7 @@ import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.NavMeshClearanceComputer;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.Inventory;
 import hlaa.tdm.utils.Navigation;
@@ -12,16 +13,16 @@ import math.geom2d.Vector2D;
 
 public class CombatMovementBehaviour extends BaseBehavior {
 
-    public CombatMovementBehaviour(UT2004BotModuleController bot) {
+    public CombatMovementBehaviour(UT2004BotTCController bot) {
         super(bot);
     }
-    public CombatMovementBehaviour(UT2004BotModuleController bot, double priority) {
+    public CombatMovementBehaviour(UT2004BotTCController bot, double priority) {
         super(bot, priority);
     }
-    public CombatMovementBehaviour(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+    public CombatMovementBehaviour(UT2004BotTCController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
     }
-    public CombatMovementBehaviour(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
+    public CombatMovementBehaviour(UT2004BotTCController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
     }
 

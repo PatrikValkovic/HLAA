@@ -4,6 +4,7 @@ import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.CoverIPFMavView;
 import hlaa.tdm.utils.Inventory;
@@ -17,12 +18,12 @@ public class MedkitBehavior extends BaseBehavior {
     private static final double MAX_PATH_DIFF = 150.0;
     private final CoverIPFMavView _mapview;
 
-    public MedkitBehavior(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+    public MedkitBehavior(UT2004BotTCController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
         _mapview = new CoverIPFMavView(knowledge, _bot.getVisibility());
     }
 
-    public MedkitBehavior(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
+    public MedkitBehavior(UT2004BotTCController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
         _mapview = new CoverIPFMavView(knowledge, _bot.getVisibility());
     }

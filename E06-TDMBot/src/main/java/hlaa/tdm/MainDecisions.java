@@ -1,6 +1,7 @@
 package hlaa.tdm;
 
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import cz.cuni.amis.utils.Heatup;
 import hlaa.tdm.behavior.*;
 import hlaa.tdm.utils.Inventory;
@@ -9,7 +10,7 @@ import hlaa.tdm.utils.WeaponPrefs;
 
 public class MainDecisions implements IBehaviorProvider {
 
-    private final UT2004BotModuleController _bot;
+    private final UT2004BotTCController _bot;
     private final KnowledgeBase _knowledge;
 
     private final BehaviorManager _combat;
@@ -19,7 +20,7 @@ public class MainDecisions implements IBehaviorProvider {
     private final RetreatBehavior _retreat;
     private final Heatup _pursuitHeatup = new Heatup(6000);
 
-    public MainDecisions(UT2004BotModuleController bot, KnowledgeBase knowledge){
+    public MainDecisions(UT2004BotTCController bot, KnowledgeBase knowledge){
         _bot = bot;
         _knowledge = knowledge;
 

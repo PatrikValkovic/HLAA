@@ -1,24 +1,25 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.Navigation;
 
 public class FollowingBehaviour extends BaseBehavior {
 
-    public FollowingBehaviour(UT2004BotModuleController bot) {
+    public FollowingBehaviour(UT2004BotTCController bot) {
         super(bot);
     }
 
-    public FollowingBehaviour(UT2004BotModuleController bot, double priority) {
+    public FollowingBehaviour(UT2004BotTCController bot, double priority) {
         super(bot, priority);
     }
 
-    public FollowingBehaviour(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+    public FollowingBehaviour(UT2004BotTCController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
     }
 
-    public FollowingBehaviour(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
+    public FollowingBehaviour(UT2004BotTCController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
     }
 

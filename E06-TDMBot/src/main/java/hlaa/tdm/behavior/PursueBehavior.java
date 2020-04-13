@@ -1,7 +1,7 @@
 package hlaa.tdm.behavior;
 
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.Inventory;
 import hlaa.tdm.utils.Navigation;
@@ -9,10 +9,10 @@ import hlaa.tdm.utils.WeaponPrefs;
 
 public class PursueBehavior extends BaseBehavior {
 
-    public PursueBehavior(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+    public PursueBehavior(UT2004BotTCController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
     }
-    public PursueBehavior(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
+    public PursueBehavior(UT2004BotTCController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
     }
 
@@ -44,7 +44,7 @@ public class PursueBehavior extends BaseBehavior {
 
         //set weapon
         CombatBehavior.WeaponPref pref =
-                Inventory.bestWeapon(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, Navigation.directDistance(_bot, p));
+                Inventory.bestWeaponForDistance(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, Navigation.directDistance(_bot, p));
         _bot.getWeaponry().changeWeapon(pref.getWeapon());
     }
 }

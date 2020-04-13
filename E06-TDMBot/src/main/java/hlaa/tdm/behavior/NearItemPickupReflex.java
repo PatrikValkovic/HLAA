@@ -3,6 +3,7 @@ package hlaa.tdm.behavior;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.utils.Inventory;
 import hlaa.tdm.utils.Navigation;
 import java.util.Comparator;
@@ -12,7 +13,7 @@ public class NearItemPickupReflex extends BaseReflex {
 
     private static final double CLOSE_ITEM = 250.0;
 
-    public NearItemPickupReflex(UT2004BotModuleController bot) {
+    public NearItemPickupReflex(UT2004BotTCController bot) {
         super(bot);
     }
 

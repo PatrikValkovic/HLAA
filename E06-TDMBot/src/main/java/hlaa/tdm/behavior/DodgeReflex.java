@@ -4,6 +4,7 @@ import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.pathfollowing.UT2004AcceleratedPathExecutor;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import java.awt.*;
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class DodgeReflex extends BaseReflex {
     private static final double MIN_DODGE_DISTANCE = 500.0;
     private static final double MAX_HEIGHT_DIFFERENCE = 40.0;
 
-    public DodgeReflex(UT2004BotModuleController bot) {
+    public DodgeReflex(UT2004BotTCController bot) {
         super(bot);
     }
 

@@ -1,6 +1,7 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.utils.DeltaCounter;
 
 public class LookBehindReflex extends BaseReflex {
@@ -9,7 +10,7 @@ public class LookBehindReflex extends BaseReflex {
     private final DeltaCounter _deltaCounter = new DeltaCounter();
     private double _delta = 0;
 
-    public LookBehindReflex(UT2004BotModuleController bot) {
+    public LookBehindReflex(UT2004BotTCController bot) {
         super(bot);
     }
 

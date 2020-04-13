@@ -5,6 +5,7 @@ import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.Navigation;
 import java.util.Comparator;
@@ -14,13 +15,13 @@ public class RetreatBehavior extends BaseBehavior {
     private static final double EXSCAPE_POINTS_IN_RADIUS = 600.0;
     private boolean _alreadyJumped = false;
 
-    public RetreatBehavior(UT2004BotModuleController bot) {
+    public RetreatBehavior(UT2004BotTCController bot) {
         super(bot);
     }
-    public RetreatBehavior(UT2004BotModuleController bot, KnowledgeBase knowledge) {
+    public RetreatBehavior(UT2004BotTCController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
     }
-    public RetreatBehavior(UT2004BotModuleController bot, double priority) {
+    public RetreatBehavior(UT2004BotTCController bot, double priority) {
         super(bot, priority);
     }
 
