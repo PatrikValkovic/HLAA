@@ -1,6 +1,7 @@
-package hlaa.tdm;
+package hlaa.tdm.utils;
 
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.NavigationGraphBuilder;
+import hlaa.tdm.TDMBot;
 
 /**
  * Class containing adjustments for navigation graph of PogamutCup competition maps.
@@ -25,6 +26,10 @@ public class MapTweaks {
 	// ======================
 	
 	private static void tweakDM1on1RoughineryFPS(NavigationGraphBuilder navBuilder) {
+		navBuilder.modifyEdge("PathNode105", "JumpSpot10").removeJumpFlag();
+		navBuilder.modifyEdge("PathNode105", "JumpSpot10").removeDoubleJump();
+		navBuilder.modifyEdge("PathNode105", "PathNode54").removeJumpFlag();
+		navBuilder.modifyEdge("PathNode105", "PathNode54").removeDoubleJump();
 	}
 	
 	// ======================
@@ -38,8 +43,11 @@ public class MapTweaks {
 	// DM-Ranking-FE
 	// ======================
 	
-	private static void tweakDMRankinFE(NavigationGraphBuilder navBuilder) {		
+	private static void tweakDMRankinFE(NavigationGraphBuilder navBuilder) {
 		navBuilder.removeEdge("PathNode122", "JumpSpot1");
+		navBuilder.removeEdge("InventorySpot166", "JumpSpot1");
+		navBuilder.removeEdge("InventorySpot165", "JumpSpot1");
+
 	}
 	
 }

@@ -69,7 +69,7 @@ public class MedkitBehavior extends BaseBehavior {
                 _mapview
         );
 
-        //get rid of poitns if passed
+        //get rid of position if passed
         List<NavPoint> p = Navigation.getPath(path);
         if(p == null)
             return;

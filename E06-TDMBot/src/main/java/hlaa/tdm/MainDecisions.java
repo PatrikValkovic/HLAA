@@ -52,7 +52,7 @@ public class MainDecisions implements IBehaviorProvider {
                 return _medkit;
             if(Inventory.hasAllRangeWeapon(_bot.getWeaponry()) && _pursuitHeatup.isHot())
                 return _pursue;
-            if(_picking.itemsTopickup().size() > 0)
+            if(_picking.isFiring())
                 return _picking;
             return _pursue;
         }

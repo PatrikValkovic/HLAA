@@ -32,15 +32,28 @@ public class SpawnItemHelper {
     @NonNull
     Item item;
 
-    @Setter
     @Getter
     Instant lastUnseen;
 
     @Setter
     @Getter
+    Instant lastSeen;
+
+    @Setter
+    @Getter
     double spawnProb;
 
+    public void setLastUnseen(Instant when){
+        spawnProb = getCurrentSpawnProb();
+        lastUnseen = when;
+        if(lastSeen == null || lastSeen.isBefore(lastUnseen)){
+            spawnProb = 0;
+        }
+    }
+
     public double getCurrentSpawnProb(){
+        if(lastSeen == null || lastSeen.isAfter(lastUnseen))
+            return 1.0;
         return Math.min(1.0, spawnProb + (double)Duration.between(lastUnseen, Instant.now()).toMillis() / spawnTime);
     }
 }

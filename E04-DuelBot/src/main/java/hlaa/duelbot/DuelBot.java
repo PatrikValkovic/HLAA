@@ -27,17 +27,13 @@ public class DuelBot extends UT2004BotModuleController {
      */
     @Override
     public Initialize getInitializeCommand() {
-        return new Initialize().setName("DuelBot" + (this.hashCode() % 32)).setSkin(UT2004Skins.getRandomSkin()).setDesiredSkill(6);
+        return new Initialize().setName("DuelBot" + (this.hashCode() % 32)).setSkin(UT2004Skins.getRandomSkin()).setDesiredSkill(6).setTeam(1);
     }
 
     @Override
     public void botInitialized(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init) {
         bot.getLogger().getCategory("Yylex").setLevel(Level.OFF);
         _knowledge = new KnowledgeBase(this);
-        ReflexBehavior reflex = new ReflexBehavior(this, 1000.0);
-        reflex.addReflex(new DodgeReflex(this))
-              .addReflex(new LookBehindReflex(this))
-              .addReflex(new RocketAvoidanceReflex(this));
         _behaviorManager = new BehaviorManager(log);
         _behaviorManager
                 .addBehavior(
@@ -47,10 +43,10 @@ public class DuelBot extends UT2004BotModuleController {
                                 .addReflex(new NearItemPickupReflex(this))
                                 .addReflex(new RocketAvoidanceReflex(this))
                 ).addProvider(
-                        new MainDecisions(this, _knowledge)
-                ).addBehavior(
-                    new LookAroundBehavior(this, -10)
-                );
+                new MainDecisions(this, _knowledge)
+        ).addBehavior(
+                new LookAroundBehavior(this, -10)
+        );
     }
 
     @Override
@@ -132,6 +128,6 @@ public class DuelBot extends UT2004BotModuleController {
                 DuelBot.class,   // which UT2004BotController it should instantiate
                 "DuelBot"        // what name the runner should be using
         ).setMain(true)          // tells runner that is is executed inside MAIN method, thus it may block the thread and watch whether agent/s are correctly executed
-         .startAgents(2);        // tells the runner to start 2 agents
+         .startAgents(1);        // tells the runner to start 2 agents
     }
 }

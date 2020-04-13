@@ -31,6 +31,7 @@ import cz.cuni.amis.utils.exception.PogamutException;
 import cz.cuni.amis.utils.flag.FlagListener;
 import hlaa.tdm.tc.TDMCommItems;
 import hlaa.tdm.tc.TDMCommObjectUpdates;
+import hlaa.tdm.utils.MapTweaks;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;

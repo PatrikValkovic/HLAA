@@ -3,16 +3,13 @@ package hlaa.tdm;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
+import hlaa.tdm.knowledge.ItemSpawnKnowledge;
 import hlaa.tdm.utils.DeltaCounter;
-import hlaa.tdm.utils.Navigation;
 import hlaa.tdm.utils.SpawnItemHelper;
-import java.awt.*;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.ujmp.core.DenseMatrix;
 import org.ujmp.core.Matrix;
@@ -29,19 +26,22 @@ public class KnowledgeBase {
     private final UT2004BotModuleController _bot;
     private final DeltaCounter _delta = new DeltaCounter();
 
+    private final ItemSpawnKnowledge _itemSpawn;
+
     private SparseMatrix _movementMarkovChain;
     private Matrix2D _positionEstimation;
     private Map<Integer, UnrealId> _indexToNavpoin;
     private Map<UnrealId, Integer> _navpointToIndex;
 
-    private Map<UnrealId, SpawnItemHelper> _spawnedItems;
 
     public KnowledgeBase(UT2004BotModuleController bot) {
         this._bot = bot;
+        _itemSpawn = new ItemSpawnKnowledge(bot);
+
         createMarkovChain();
         createPositionMatrix();
-        createSpawnedItems();
         //_positionEstimation.showGUI();
+
     }
 
     private void createMarkovChain() {
@@ -104,18 +104,6 @@ public class KnowledgeBase {
             _positionEstimation.setAsFloat(1.0f / (float) nNavpoints, 0, i);
     }
 
-    private void createSpawnedItems() {
-        _spawnedItems = _bot.getItems()
-                            .getAllItems()
-                            .values()
-                            .stream()
-                            .map(item -> {
-                                double timeToSpawn = _bot.getItems().getItemRespawnTime(item);
-                                Location spawnLocation = item.getLocation();
-                                return new SpawnItemHelper(spawnLocation, timeToSpawn, item);
-                            }).collect(Collectors.toMap(i -> i.getItem().getId(), i -> i));
-    }
-
     public void updateKnowledge() {
         float delta = _delta.getDelta();
         _bot.getDraw().clearAll();
@@ -170,52 +158,7 @@ public class KnowledgeBase {
             assert Math.abs(s - 1.0) < 1e-25;
         }*/
 
-        // update positions
-        if (_bot.getLevelGeometry() != null && _bot.getLevelGeometry().isLoaded()) {
-            Set<SpawnItemHelper> shouldSeeItems = _spawnedItems.values()
-                                                               .stream()
-                                                               .filter(item -> _bot.getInfo().isFacing(item.getLocation(), 40))
-                                                               .filter(item -> Navigation.canSee(_bot.getLevelGeometry(), _bot.getInfo().getLocation(), item.getLocation()))
-                                                               .collect(Collectors.toSet());
-            Set<Item> seeItems = new HashSet<>(_bot.getItems()
-                                                   .getVisibleItems()
-                                                   .values());
-
-            Set<SpawnItemHelper> dontSeeItems = new HashSet<>(shouldSeeItems);
-            dontSeeItems.removeIf(i -> seeItems.contains(i.getItem()));
-            this.getSpawnedItems().stream()
-                .filter(i -> Navigation.directDistance(_bot, i.getLocation()) < 100)
-                .forEach(i -> {
-                    SpawnItemHelper itemHelper = _spawnedItems.get(i.getId());
-                    if(itemHelper != null)
-                        dontSeeItems.add(itemHelper);
-                });
-
-            if(true){
-                seeItems.forEach(item -> _bot.getDraw().drawLine(Color.PINK, _bot.getInfo(), item));
-                dontSeeItems.forEach(item -> _bot.getDraw().drawLine(new Color(147, 49,255), _bot.getInfo(), item.getLocation()));
-            }
-
-            seeItems.forEach(i -> {
-                SpawnItemHelper helper = _spawnedItems.get(i.getId());
-                if(helper != null)
-                    helper.setSpawnProb(1);
-            });
-
-            dontSeeItems.forEach(helper -> {
-                Instant lastUnseen = helper.getLastUnseen();
-                Instant currentUnseed = Instant.now();
-                double timeBetween = (double)Duration.between(lastUnseen, currentUnseed).toMillis();
-                if(timeBetween > helper.getSpawnTime()){
-                    helper.setSpawnProb(0.0);
-                    helper.setLastUnseen(currentUnseed);
-                }
-                else {
-                    helper.setSpawnProb(helper.getSpawnProb() + timeBetween / helper.getSpawnTime());
-                    helper.setLastUnseen(currentUnseed);
-                }
-            });
-        }
+        _itemSpawn.update();
     }
 
     public Matrix2D getPositionEstimation() {
@@ -259,24 +202,8 @@ public class KnowledgeBase {
         _positionEstimation.fill(Calculation.Ret.NEW, 1.0 / (double) _positionEstimation.getSize(1));
     }
 
-    public List<Item> getSpawnedItems() {
-        if(_bot.getLevelGeometry() != null && _bot.getLevelGeometry().isLoaded()) {
-            List<Item> basedOnInternal = _spawnedItems.values()
-                                .stream()
-                                .filter(i -> i.getCurrentSpawnProb() > 0.9)
-                                .filter(i -> Navigation.directDistance(_bot, i.getLocation()) > 300)
-                                .map(SpawnItemHelper::getItem)
-                                .collect(Collectors.toList());
-            List<Item> visible = new ArrayList<>(_bot.getItems().getVisibleItems().values());
-            visible.addAll(basedOnInternal);
-            return visible;
-        }
-        else {
-            return new ArrayList<>(_bot.getItems()
-                                       .getSpawnedItems()
-                                       .values());
-
-        }
+    public ItemSpawnKnowledge getItemSpawnedKnowledge(){
+        return _itemSpawn;
     }
 
 }

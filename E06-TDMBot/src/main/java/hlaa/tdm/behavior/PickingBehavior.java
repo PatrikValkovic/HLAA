@@ -1,15 +1,10 @@
 package hlaa.tdm.behavior;
 
-import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
-import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
-import cz.cuni.amis.utils.Cooldown;
 import hlaa.tdm.KnowledgeBase;
-import hlaa.tdm.utils.CoverIPFMavView;
 import hlaa.tdm.utils.Inventory;
 import hlaa.tdm.utils.Navigation;
 import java.util.*;
@@ -18,12 +13,8 @@ import java.util.stream.Collectors;
 public class PickingBehavior extends BaseBehavior {
 
     private static final double MAX_PATH_DIFF = 1.1;
+    private static final double POWER_BASE = 0.999;
     private static final Map<ItemType, Double> WEAPON_WORTH = new HashMap<>();
-    private static final double ROCKET_MINUS = 50.0;
-    private static final double ROCKET_COVER_DISTANCE_MIN = 300.0;
-    private static final double ROCKET_COVER_DISTANCE_MAX = 700.0;
-    private final Cooldown _useRocketCoverFire = new Cooldown(4000);
-    private final CoverIPFMavView _mapview;
 
     static {
         WEAPON_WORTH.put(UT2004ItemType.ASSAULT_RIFLE, 10.0);
@@ -34,7 +25,7 @@ public class PickingBehavior extends BaseBehavior {
         WEAPON_WORTH.put(UT2004ItemType.SHOCK_RIFLE, 120.0);
         WEAPON_WORTH.put(UT2004ItemType.LIGHTNING_GUN, 200.0);
         WEAPON_WORTH.put(UT2004ItemType.SNIPER_RIFLE, 200.0);
-        WEAPON_WORTH.put(UT2004ItemType.ROCKET_LAUNCHER, 1000.0);
+        WEAPON_WORTH.put(UT2004ItemType.ROCKET_LAUNCHER, 90.0);
         WEAPON_WORTH.put(UT2004ItemType.U_DAMAGE_PACK, 125.0);
         WEAPON_WORTH.put(UT2004ItemType.SUPER_SHIELD_PACK, 90.0);
         WEAPON_WORTH.put(UT2004ItemType.SHIELD_PACK, 75.0);
@@ -46,21 +37,20 @@ public class PickingBehavior extends BaseBehavior {
 
     public PickingBehavior(UT2004BotModuleController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
-        _mapview = new CoverIPFMavView(knowledge, bot.getVisibility());
     }
 
     public PickingBehavior(UT2004BotModuleController bot, double priority, KnowledgeBase knowledge) {
         super(bot, priority, knowledge);
-        _mapview = new CoverIPFMavView(knowledge, bot.getVisibility());
     }
 
     @Override
     public boolean isFiring() {
-        return true;
+        return itemsToPickup().size() > 0;
     }
 
-    public List<Item> itemsTopickup() {
-        return _knowledge.getSpawnedItems()
+    private List<Item> itemsToPickup() {
+        return _knowledge.getItemSpawnedKnowledge()
+                         .getSpawnedItems()
                          .stream()
                          .filter(item -> WEAPON_WORTH.containsKey(item.getType()))
                          .filter(item -> Inventory.needItem(_bot.getWeaponry(), _bot.getInfo(), item.getType()))
@@ -72,37 +62,25 @@ public class PickingBehavior extends BaseBehavior {
     @Override
     public void execute() {
         // get items to consider
-        List<Item> toConsider = itemsTopickup();
+        List<Item> toConsider = itemsToPickup();
 
         // first the target item
-        Optional<Item> toPickup;
-        // doesnt seems to have much impact
-        if (_knowledge.getMaxProb() < 2.0) {
-            toPickup = toConsider.stream()
-                                 .max(Comparator.comparingDouble(
-                    i -> 1.0 / Math.sqrt(
-                            Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo().getLocation(), i.getLocation())
-                    ) * WEAPON_WORTH.get(i.getType())
-            ));
-        } else {
-            System.out.println("Using custom AStar");
-            toPickup = toConsider.stream().max(Comparator.comparingDouble(
-                    i -> {
-                        AStarResult<NavPoint> path = _bot.getAStar().findPath(
-                                Navigation.getClosestNavpoint(_bot, _bot.getNavPoints()),
-                                Navigation.getClosestNavpoint(i.getLocation(), _bot.getNavPoints()),
-                                _mapview
-                        );
-                        return 1.0 / Math.sqrt(path.getDistanceToGoal()) * WEAPON_WORTH.get(i.getType());
-                    }
-            ));
-        }
+        Optional<Item> toPickup = toConsider.stream()
+                                            .max(Comparator.comparingDouble(
+                                                    i -> Math.pow(
+                                                            POWER_BASE, Navigation.distanceBetween(
+                                                                    _bot.getNMNav(),
+                                                                    _bot.getInfo().getLocation(),
+                                                                    i.getLocation()
+                                                            )) * WEAPON_WORTH.get(i.getType())
+                                            ));
 
         if (!toPickup.isPresent()) {
             return;
         }
 
         _bot.getLog().info("Main item to pick: " + toPickup.get().getType().getName());
+
 
         // get items on the way
         //TODO distances between items can be computed before
@@ -129,28 +107,7 @@ public class PickingBehavior extends BaseBehavior {
         }
 
         // navigate to item
-        _bot.getNMNav().navigate(currentTarget.getLocation());
-
-        // cover fire
-        //System.out.println("Distance: " + Navigation.directDistance(_bot, currentTarget.getLocation()));
-        //System.out.println("Can use: " + Inventory.canUseWeapon(_bot.getWeaponry(), UT2004ItemType.ROCKET_LAUNCHER));
-        //System.out.println("Calldown: " + _useRocketCoverFire.getRemainingTime());
-        if (Inventory.canUseWeapon(_bot.getWeaponry(), UT2004ItemType.ROCKET_LAUNCHER) &&
-                _useRocketCoverFire.isCool() &&
-                Navigation.directDistance(_bot, currentTarget.getLocation()) < ROCKET_COVER_DISTANCE_MAX &&
-                Navigation.directDistance(_bot, currentTarget.getLocation()) > ROCKET_COVER_DISTANCE_MIN &&
-                Navigation.canSee(_bot.getLevelGeometry(), _bot.getInfo().getLocation(), currentTarget.getLocation())
-        ) {
-            //System.out.println("I shoot");
-            _useRocketCoverFire.use();
-            _bot.getShoot().shoot(
-                    _bot.getWeaponry().getWeapon(UT2004ItemType.ROCKET_LAUNCHER),
-                    true,
-                    currentTarget.getLocation().sub(new Location(0, 0, ROCKET_MINUS))
-            );
-        } else {
-            _bot.getShoot().stopShooting();
-        }
+        _bot.getNMNav().navigate(toPickup.get().getLocation());
     }
 
     @Override

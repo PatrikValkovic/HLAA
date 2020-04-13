@@ -29,7 +29,10 @@ public class MedkitBehavior extends BaseBehavior {
 
     @Override
     public boolean isFiring() {
-        return _bot.getInfo().getHealth() < 100 && _knowledge.getSpawnedItems().stream().anyMatch(i -> Inventory.isHealth(i.getType()));
+        return _bot.getInfo().getHealth() < 100 && _knowledge.getItemSpawnedKnowledge()
+                                                             .getSpawnedItems()
+                                                             .stream()
+                                                             .anyMatch(i -> Inventory.isHealth(i.getType()));
     }
 
     private void getRidOfPoint(List<NavPoint> p, int index1, int index2){
@@ -53,7 +56,8 @@ public class MedkitBehavior extends BaseBehavior {
                                   .get();
 
         //decide what to pickup
-        Item toPickup = _knowledge.getSpawnedItems()
+        Item toPickup = _knowledge.getItemSpawnedKnowledge()
+                                  .getSpawnedItems()
                                   .stream()
                                   .filter(i -> Navigation.canReachNavpoint(_bot.getNMNav(), _bot.getInfo().getLocation(), i.getLocation()))
                                   .min(Comparator.comparingDouble(i ->
