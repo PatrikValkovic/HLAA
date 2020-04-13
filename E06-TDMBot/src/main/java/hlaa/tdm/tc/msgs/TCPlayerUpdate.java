@@ -1,4 +1,4 @@
-package tdm.tc.msgs;
+package hlaa.tdm.tc.msgs;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Rotation;

@@ -1,4 +1,4 @@
-package tdm.starter;
+package hlaa.tdm.starter;
 
 import cz.cuni.amis.pogamut.ut2004.teamcomm.server.UT2004TCServer;
 

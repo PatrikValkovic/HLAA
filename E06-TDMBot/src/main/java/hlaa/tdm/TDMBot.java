@@ -1,11 +1,4 @@
-package tdm;
-
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
+package hlaa.tdm;
 
 import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
 import cz.cuni.amis.pathfinding.map.IPFMapView;
@@ -29,30 +22,22 @@ import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbcommands.Initialize;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotDamaged;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.BotKilled;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ConfigChange;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.GameInfo;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.HearNoise;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.IncomingProjectile;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.InitedMessage;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ItemPickedUp;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerDamaged;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.PlayerKilled;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Self;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.TeamScore;
+import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.*;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.ExceptionToString;
 import cz.cuni.amis.utils.collections.MyCollections;
 import cz.cuni.amis.utils.exception.PogamutException;
 import cz.cuni.amis.utils.flag.FlagListener;
+import hlaa.tdm.tc.TDMCommItems;
+import hlaa.tdm.tc.TDMCommObjectUpdates;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import math.geom2d.Vector2D;
-import tdm.tc.TDMCommItems;
-import tdm.tc.TDMCommObjectUpdates;
 
 /**
  * TDM BOT TEMPLATE CLASS

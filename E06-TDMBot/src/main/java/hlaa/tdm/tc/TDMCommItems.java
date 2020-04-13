@@ -1,9 +1,9 @@
-package tdm.tc;
+package hlaa.tdm.tc;
 
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.AnnotationListenerRegistrator;
 import cz.cuni.amis.pogamut.base.utils.logging.LogCategory;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004TCClient;
-import tdm.TDMBot;
+import hlaa.tdm.TDMBot;
 
 /**
  * Communication module for the TDM Bot for negotiating what items will team be picking up.

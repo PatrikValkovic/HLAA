@@ -1,10 +1,9 @@
-package tdm.starter;
-
-import java.util.logging.Level;
+package hlaa.tdm.starter;
 
 import cz.cuni.amis.pogamut.ut2004.utils.UT2004BotRunner;
 import cz.cuni.amis.utils.exception.PogamutException;
-import tdm.TDMBot;
+import hlaa.tdm.TDMBot;
+import java.util.logging.Level;
 
 public class Starter_Bots {
 

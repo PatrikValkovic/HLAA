@@ -1,4 +1,4 @@
-package tdm.tc;
+package hlaa.tdm.tc;
 
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.AnnotationListenerRegistrator;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
@@ -7,16 +7,15 @@ import cz.cuni.amis.pogamut.base.communication.worldview.object.IWorldObject;
 import cz.cuni.amis.pogamut.base.communication.worldview.object.event.WorldObjectUpdatedEvent;
 import cz.cuni.amis.pogamut.base.utils.logging.LogCategory;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
-import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.FlagInfo;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.ItemPickedUp;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004TCClient;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.mina.server.messages.TCInfoBotJoined;
-import tdm.TDMBot;
-import tdm.tc.msgs.TCItemUpdate;
-import tdm.tc.msgs.TCPlayerUpdate;
+import hlaa.tdm.TDMBot;
+import hlaa.tdm.tc.msgs.TCItemUpdate;
+import hlaa.tdm.tc.msgs.TCPlayerUpdate;
 
 /**
  * Communication module for the TDM Bot that maintains team knowledge about states of {@link Player}s and {@link Item}s.

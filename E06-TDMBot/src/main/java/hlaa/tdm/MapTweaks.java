@@ -1,4 +1,4 @@
-package tdm;
+package hlaa.tdm;
 
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.NavigationGraphBuilder;
 
