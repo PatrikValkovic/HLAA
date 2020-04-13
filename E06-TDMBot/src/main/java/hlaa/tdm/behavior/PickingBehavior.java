@@ -83,31 +83,34 @@ public class PickingBehavior extends BaseBehavior {
 
 
         // get items on the way
-        //TODO distances between items can be computed before
-        double pathLength = Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo().getLocation(), toPickup.get().getLocation());
+        double pathLength = Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo(), toPickup.get());
         Item currentTarget = toPickup.get();
         boolean targetChanged = true;
         while (targetChanged) {
             targetChanged = false;
             Item finalCurrentTarget = currentTarget;
             double finalPathLength = pathLength;
-            Optional<Item> newTarget = toConsider.stream().filter(item ->
-                    Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo().getLocation(), item.getLocation()) < finalPathLength
-            ).filter(item ->
-                    Navigation.pathComposition(_bot.getNMNav(), _bot.getInfo().getLocation(), item.getLocation(), finalCurrentTarget.getLocation()) < finalPathLength * MAX_PATH_DIFF
-            ).max(Comparator.comparingDouble(item -> Navigation.pathComposition(
-                    _bot.getNMNav(), _bot.getInfo().getLocation(), item.getLocation(), finalCurrentTarget.getLocation()
-            )));
+
+            Optional<Item> newTarget = toConsider.stream()
+                                                 .filter(item ->
+                                                         Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo(), item) < finalPathLength
+                                                 )
+                                                 .filter(item ->
+                                                         Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo(), item.getLocation()) + _knowledge.getItemDistancesKnowledge().getDistanceBetween(item, finalCurrentTarget) < finalPathLength * MAX_PATH_DIFF
+                                                 )
+                                                 .min(Comparator.comparingDouble(item ->
+                                                         Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo(), item.getLocation()) + _knowledge.getItemDistancesKnowledge().getDistanceBetween(item, finalCurrentTarget)
+                                                 ));
 
             if (newTarget.isPresent()) {
-                pathLength = Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo().getLocation(), newTarget.get().getLocation());
+                pathLength = Navigation.distanceBetween(_bot.getNMNav(), _bot.getInfo(), newTarget.get());
                 currentTarget = newTarget.get();
                 targetChanged = true;
             }
         }
 
         // navigate to item
-        _bot.getNMNav().navigate(toPickup.get().getLocation());
+        _bot.getNMNav().navigate(toPickup.get());
     }
 
     @Override

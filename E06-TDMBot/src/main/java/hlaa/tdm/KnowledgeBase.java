@@ -1,16 +1,14 @@
 package hlaa.tdm;
 
-import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
+import hlaa.tdm.knowledge.ItemDistancesKnowledge;
 import hlaa.tdm.knowledge.ItemSpawnKnowledge;
 import hlaa.tdm.utils.DeltaCounter;
-import hlaa.tdm.utils.SpawnItemHelper;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.ujmp.core.DenseMatrix;
 import org.ujmp.core.Matrix;
 import org.ujmp.core.Matrix2D;
@@ -27,6 +25,7 @@ public class KnowledgeBase {
     private final DeltaCounter _delta = new DeltaCounter();
 
     private final ItemSpawnKnowledge _itemSpawn;
+    private final ItemDistancesKnowledge _itemDistances;
 
     private SparseMatrix _movementMarkovChain;
     private Matrix2D _positionEstimation;
@@ -37,6 +36,7 @@ public class KnowledgeBase {
     public KnowledgeBase(UT2004BotModuleController bot) {
         this._bot = bot;
         _itemSpawn = new ItemSpawnKnowledge(bot);
+        _itemDistances = new ItemDistancesKnowledge(bot);
 
         createMarkovChain();
         createPositionMatrix();
@@ -204,6 +204,10 @@ public class KnowledgeBase {
 
     public ItemSpawnKnowledge getItemSpawnedKnowledge(){
         return _itemSpawn;
+    }
+
+    public ItemDistancesKnowledge getItemDistancesKnowledge() {
+        return _itemDistances;
     }
 
 }

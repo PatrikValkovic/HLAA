@@ -19,7 +19,7 @@ public class Navigation {
 
     private static final double RAY_LIFT = 50.0;
 
-    public static double distanceBetween(NavMeshNavigation nav, Location from, Location to) {
+    public static double distanceBetween(NavMeshNavigation nav, ILocated from, ILocated to) {
         return nav.getPathPlanner().getDistance(from, to);
     }
 
