@@ -32,7 +32,7 @@ public class CoverIPFMavView implements IPFMapView<NavPoint> {
                           .mapToDouble(p -> {
                                 return (10 - Math.log(LOG_MULTIPLIER * p.getLocation().getDistance(navPoint.getLocation()) + 0.01))
                                         *
-                                        _knowledge.getProbAtNavpoint(p)
+                                        _knowledge.getEnemyPositionsKnowledge().getProbAtNavpoint(p)
                                         *
                                         COST_WEIGHTS;
                           })
