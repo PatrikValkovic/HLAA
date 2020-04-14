@@ -1,19 +1,19 @@
 package hlaa.tdm.behavior;
 
+import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class BehaviorManager implements IBehavior {
 
     private List<IBehaviorProvider> _behaviors = new LinkedList<>();
     private List<IBehavior> _previouslyActivated = new LinkedList<>();
-    private final Logger log;
+    private final UT2004BotTCController _bot;
 
-    public BehaviorManager(Logger log) {
-        this.log = log;
+    public BehaviorManager(UT2004BotTCController bot) {
+        this._bot = bot;
     }
 
     public BehaviorManager addBehavior(IBehavior behavior) {
@@ -34,9 +34,14 @@ public class BehaviorManager implements IBehavior {
         _previouslyActivated.removeAll(nowActivated);
         _previouslyActivated.forEach(IBehavior::terminate);
 
-        log.info(String.format("Now activated {%s}",
-                nowActivated.stream().map(i -> i.getClass().getSimpleName()).collect(Collectors.joining(","))
-        ));
+        // show active states
+        if(_bot != null) {
+            String states = nowActivated.stream().map(i -> i.getClass().getSimpleName()).collect(Collectors.joining(","));
+            _bot.getBot().getBotName().setInfo(states);
+            _bot.getLog().info("Active states: " + states);
+        }
+
+        // run activated
         _previouslyActivated = nowActivated;
         _previouslyActivated.forEach(IBehavior::execute);
     }

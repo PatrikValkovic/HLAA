@@ -79,7 +79,7 @@ public class PickingBot extends UT2004BotTCController<UT2004Bot> {
 	@Override
     public void beforeFirstLogic() {
 		_knowledge = new KnowledgeBase(this);
-		_behavior = new BehaviorManager(this.getLog())
+		_behavior = new BehaviorManager(this)
 				.addBehavior(new PickingBehavior(this, 10, _knowledge))
 				.addBehavior(new LookAroundBehavior(this, 0));
     }

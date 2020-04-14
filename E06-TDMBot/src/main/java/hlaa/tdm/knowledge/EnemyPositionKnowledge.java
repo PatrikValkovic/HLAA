@@ -7,6 +7,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.messages.TCEnemyLocation;
 import hlaa.tdm.utils.DeltaCounter;
+import hlaa.tdm.utils.Navigation;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -181,13 +182,7 @@ public class EnemyPositionKnowledge {
     }
 
     public void updatePlayer(UnrealId playerId, Location location){
-        NavPoint playerNavpoint
-                = _bot.getNavPoints()
-                      .getNavPoints()
-                      .values()
-                      .stream().min(Comparator.comparingDouble(
-                        p -> p.getLocation().getDistance(location))
-                ).get();
+        NavPoint playerNavpoint =  Navigation.getClosestNavpoint(location, _bot.getNavPoints());
         if (!_estimations.containsKey(playerId))
             _estimations.put(playerId, new Helper(_bot.getPlayers().getPlayer(playerId), DenseMatrix.Factory.zeros(1, _navpointToIndex.size())));
         Helper h = _estimations.get(playerId);

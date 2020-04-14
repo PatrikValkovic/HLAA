@@ -1,6 +1,5 @@
 package hlaa.tdm;
 
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import cz.cuni.amis.utils.Heatup;
 import hlaa.tdm.behavior.*;
@@ -24,7 +23,7 @@ public class MainDecisions implements IBehaviorProvider {
         _bot = bot;
         _knowledge = knowledge;
 
-        _combat = new BehaviorManager(_bot.getLog())
+        _combat = new BehaviorManager(_bot)
                 .addBehavior(new CombatBehavior(_bot, 100, knowledge))
                 .addBehavior(new CombatMovementBehaviour(_bot, knowledge));
         _medkit = new MedkitBehavior(_bot, _knowledge);

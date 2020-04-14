@@ -7,6 +7,8 @@ import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.NavPoints;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.levelGeometry.LevelGeometry;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.levelGeometry.RayCastResult;
+import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.NavMeshClearanceComputer;
+import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.NavMeshModule;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.pathfollowing.NavMeshNavigation;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
@@ -14,6 +16,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
+import math.geom2d.Vector2D;
 
 public class Navigation {
 
@@ -32,9 +35,24 @@ public class Navigation {
             return false;
 
         double distanceBetween = from.getDistance(to);
-        RayCastResult ray = g.rayCast(from, to);
-        double rayDistance = ray.isHit() ? ray.hitDistance : Double.POSITIVE_INFINITY;
+        double rayDistance = rayCastDistance(g, from, to);
         return distanceBetween < rayDistance;
+    }
+
+    public static RayCastResult rayCast(LevelGeometry g, Location from, Location to){
+        if(g == null || !g.isLoaded())
+            return null;
+
+        return g.rayCast(from, to);
+    }
+
+    public static double rayCastDistance(LevelGeometry g, Location from, Location to){
+        if(g == null || !g.isLoaded())
+            return Double.POSITIVE_INFINITY;
+
+        RayCastResult ray = rayCast(g, from, to);
+        double rayDistance = ray.isHit() ? ray.hitDistance : Double.POSITIVE_INFINITY;
+        return rayDistance;
     }
 
     public static boolean canSee(LevelGeometry g, Location from, Location to){
@@ -42,12 +60,20 @@ public class Navigation {
     }
 
     public static boolean canSeeNavpoint(UT2004BotModuleController bot, NavPoint point){
-        bot.getDraw().drawLine(Color.GREEN, bot.getInfo().getLocation(), point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT)));
+        bot.getDraw().drawLine(
+                Color.GREEN,
+                bot.getInfo().getLocation(),
+                point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT))
+        );
         if(bot.getLevelGeometry() == null || !bot.getLevelGeometry().isLoaded())
             return false;
 
-        RayCastResult ray = bot.getLevelGeometry().rayCast(bot.getInfo().getLocation(), point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT)));
-        if(ray.isHit()){
+        RayCastResult ray = rayCast(
+                bot.getLevelGeometry(),
+                bot.getInfo().getLocation(),
+                point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT))
+        );
+        if(ray != null && ray.isHit()){
             bot.getDraw().drawLine(Color.BLUE, bot.getInfo().getLocation(), ray.hitLocation);
         }
         else {
@@ -113,7 +139,7 @@ public class Navigation {
     }
 
     public static NavPoint getClosestNavpoint(UT2004BotModuleController bot, NavPoints navpoints){
-        return getClosestNavpoint(bot.getInfo().getLocation(), navpoints);
+        return getClosestNavpoint(bot.getInfo(), navpoints);
     }
 
     public static NavPoint getClosestNavpoint(ILocated from, NavPoints navpoints){
@@ -122,6 +148,22 @@ public class Navigation {
                 .stream()
                 .min(Comparator.comparingDouble(p -> directDistance(p, from)))
                 .get();
+    }
+
+    public static double navMeshRayCastDistance(NavMeshModule n, ILocated from, Vector2D direction){
+        if(n == null || !n.getNavMesh().isLoaded())
+            return Double.POSITIVE_INFINITY;
+
+        return navMeshRayCast(n, from, direction).getDistance(from.getLocation());
+    }
+
+    public static Location navMeshRayCast(NavMeshModule n, ILocated from, Vector2D direction){
+        if(n == null || !n.getNavMesh().isLoaded())
+            return from.getLocation();
+
+        NavMeshClearanceComputer comp = n.getClearanceComputer();
+        NavMeshClearanceComputer.ClearanceLimit limit = comp.findEdge(from.getLocation(), direction);
+        return limit.getLocation();
     }
 
 }
