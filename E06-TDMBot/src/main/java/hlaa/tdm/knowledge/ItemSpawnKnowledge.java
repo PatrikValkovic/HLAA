@@ -2,19 +2,18 @@ package hlaa.tdm.knowledge;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.unreal.communication.messages.UnrealId;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.messages.TCDontSeeItem;
 import hlaa.tdm.messages.TCSeeItem;
 import hlaa.tdm.utils.Navigation;
 import hlaa.tdm.utils.SpawnItemHelper;
-import java.awt.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
+import static hlaa.tdm.utils.DrawingColors.SPAWN_ITEM_DONTSEE;
+import static hlaa.tdm.utils.DrawingColors.SPAWN_ITEM_SEE;
 
 public class ItemSpawnKnowledge {
     private static final boolean DRAW = true;
@@ -60,8 +59,8 @@ public class ItemSpawnKnowledge {
 
             // draw lines to spawned (pink) and not spawned (purple) items.
             if(DRAW){
-                seeItems.forEach(item -> _bot.getDraw().drawLine(new Color(255, 128, 230), _bot.getInfo(), item.getLocation()));
-                dontSeeItems.forEach(item -> _bot.getDraw().drawLine(new Color(147, 49,255), _bot.getInfo(), item.getLocation()));
+                seeItems.forEach(item -> _bot.getDraw().drawLine(SPAWN_ITEM_SEE, _bot.getInfo(), item.getLocation()));
+                dontSeeItems.forEach(item -> _bot.getDraw().drawLine(SPAWN_ITEM_DONTSEE, _bot.getInfo(), item.getLocation()));
             }
 
             dontSeeItems.forEach(helper -> {

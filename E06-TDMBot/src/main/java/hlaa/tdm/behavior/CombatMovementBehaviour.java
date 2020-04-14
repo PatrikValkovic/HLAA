@@ -1,14 +1,15 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
-import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.NavMeshClearanceComputer;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
+import hlaa.tdm.utils.DrawingColors;
 import hlaa.tdm.utils.Inventory;
 import hlaa.tdm.utils.Navigation;
-import java.awt.*;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.Set;
 import math.geom2d.Vector2D;
 
 public class CombatMovementBehaviour extends BaseBehavior {
@@ -33,44 +34,39 @@ public class CombatMovementBehaviour extends BaseBehavior {
 
     @Override
     public void execute() {
-        Player enemy = _bot.getPlayers().getNearestVisiblePlayer();
+        Player enemy = _bot.getPlayers().getNearestVisibleEnemy();
         if(enemy == null)
             return;
 
         double distance = Navigation.directDistance(_bot, enemy);
         double optimal = Inventory.getOptimalDistance(_bot.getWeaponry(), distance, 500.0);
+        Location enemyLocation = enemy.getLocation();
+        Location directionToEnemy = _bot.getInfo().getLocation().sub(enemyLocation).getNormalized();
 
         // define directions
-        Vector2D[] direction = new Vector2D[]{
-                new Vector2D(1, 0),
-                new Vector2D(0, 1),
-                new Vector2D(-1, 0),
-                new Vector2D(0, -1),
-                new Vector2D(1, 1).getNormalizedVector(),
-                new Vector2D(-1, 1).getNormalizedVector(),
-                new Vector2D(1, -1).getNormalizedVector(),
-                new Vector2D(-1, -1).getNormalizedVector()
-        };
+        Set<Vector2D> directions = Navigation.eightDirections(new Vector2D(directionToEnemy.x, directionToEnemy.y));
 
         // decide direction
-        double bestUtility = Double.NEGATIVE_INFINITY;
-        Location toLoc = _bot.getInfo().getLocation();
-        NavMeshClearanceComputer clearanceComputer = _bot.getNavMeshModule().getClearanceComputer();
-        for (Vector2D escapeDirection : direction) {
-            NavMeshClearanceComputer.ClearanceLimit limit = clearanceComputer.findEdge(_bot.getInfo().getLocation(), escapeDirection);
-            double utility = 0;
-            utility = Math.abs(Navigation.directDistance(enemy, limit.getLocation()) - optimal);
-            utility = Math.min(utility, 300.0);
+        Optional<Location> optLocation =
+            directions.stream()
+                      .map(dir -> {
+                          Location collisionLocation = Navigation.navMeshRayCast(_bot.getNavMeshModule(), _bot.getInfo(), dir);
+                          Location direction = collisionLocation.sub(_bot.getInfo().getLocation()).getNormalized();
+                          double multiplier = Math.min(400, _bot.getInfo().getLocation().getDistance(collisionLocation));
+                          Location endingLocation = _bot.getInfo().getLocation().add(direction.scale(multiplier));
+                          return endingLocation;
+                      })
+                      .filter(loc -> Navigation.isVisible(_bot.getLevelGeometry(), _bot.getInfo().getLocation(), loc))
+                      .min(Comparator.comparingDouble(loc -> {
+                          return Math.abs(Navigation.directDistance(enemy, loc) - optimal);
+                      }));
 
-            if (utility > bestUtility) {
-                bestUtility = utility;
-                toLoc = new Location(escapeDirection.getX(), escapeDirection.getY(), 0.0f);
-                toLoc = _bot.getInfo().getLocation().add(toLoc.getNormalized().scale(10.0));
-            }
-        }
+        if(!optLocation.isPresent())
+            return;
 
-        _bot.getLog().info("Ideal distance from player is " + toLoc);
-        _bot.getDraw().drawLine(Color.WHITE, _bot.getInfo(), toLoc);
-        _bot.getMove().dodge(_bot.getInfo().getLocation().sub(toLoc), false);
+        Location loc = optLocation.get();
+        _bot.getLog().info("Combat move to " + loc);
+        _bot.getDraw().drawLine(DrawingColors.COMBAT_MOVEMENT, _bot.getInfo(), loc);
+        _bot.getMove().dodge(loc.sub(_bot.getInfo().getLocation()), false);
     }
 }

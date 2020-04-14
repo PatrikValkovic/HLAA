@@ -1,7 +1,6 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
@@ -9,9 +8,9 @@ import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.CoverIPFMavView;
 import hlaa.tdm.utils.Inventory;
 import hlaa.tdm.utils.Navigation;
-import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
+import static hlaa.tdm.utils.DrawingColors.MEDKIT_PATH;
 
 public class MedkitBehavior extends BaseBehavior {
 
@@ -85,7 +84,7 @@ public class MedkitBehavior extends BaseBehavior {
         //draw path
         if (true) {
             for (int i = 0; i < p.size() - 1; i++){
-                _bot.getDraw().drawLine(Color.ORANGE, p.get(i).getLocation(), p.get(i + 1).getLocation());
+                _bot.getDraw().drawLine(MEDKIT_PATH, p.get(i).getLocation(), p.get(i + 1).getLocation());
             }
         }
 

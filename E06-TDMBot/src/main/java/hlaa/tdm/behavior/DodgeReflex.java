@@ -3,10 +3,10 @@ package hlaa.tdm.behavior;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.pathfollowing.UT2004AcceleratedPathExecutor;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
-import java.awt.*;
+import hlaa.tdm.utils.DrawingColors;
 import java.util.List;
+import static hlaa.tdm.utils.DrawingColors.NAVIGATION_PATH;
 
 public class DodgeReflex extends BaseReflex {
 
@@ -45,12 +45,12 @@ public class DodgeReflex extends BaseReflex {
             ILocated dodgeTo = (ILocated)path.get(index);
 
             if (true) {
-                _bot.getDraw().drawCube(Color.RED, dodgeTo, 15.0);
+                _bot.getDraw().drawCube(DrawingColors.NEXT_NAVIGATION_POINT, dodgeTo, 15.0);
                 //_bot.getLog().info("Height difference " + Math.abs(dodgeTo.getLocation().z - _bot.getInfo().getLocation().z));
 
                 ILocated lastLoc = _bot.getInfo().getLocation();
                 for (ILocated l : _bot.getNMNav().getCurrentPathDirect()) {
-                    _bot.getDraw().drawLine(Color.BLUE, lastLoc, l);
+                    _bot.getDraw().drawLine(NAVIGATION_PATH, lastLoc, l);
                     lastLoc = l;
                 }
             }

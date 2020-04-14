@@ -12,8 +12,6 @@ import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.NavMeshModule;
 import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.pathfollowing.NavMeshNavigation;
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
-import java.awt.*;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 import math.geom2d.Vector2D;
@@ -60,25 +58,8 @@ public class Navigation {
     }
 
     public static boolean canSeeNavpoint(UT2004BotModuleController bot, NavPoint point){
-        bot.getDraw().drawLine(
-                Color.GREEN,
-                bot.getInfo().getLocation(),
-                point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT))
-        );
         if(bot.getLevelGeometry() == null || !bot.getLevelGeometry().isLoaded())
             return false;
-
-        RayCastResult ray = rayCast(
-                bot.getLevelGeometry(),
-                bot.getInfo().getLocation(),
-                point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT))
-        );
-        if(ray != null && ray.isHit()){
-            bot.getDraw().drawLine(Color.BLUE, bot.getInfo().getLocation(), ray.hitLocation);
-        }
-        else {
-            bot.getDraw().drawLine(Color.BLUE, bot.getInfo().getLocation(), point.getLocation().add(new Location(0.0, 0.0, RAY_LIFT-10.0)));
-        }
 
         return isVisible(
                 bot.getLevelGeometry(),
@@ -164,6 +145,20 @@ public class Navigation {
         NavMeshClearanceComputer comp = n.getClearanceComputer();
         NavMeshClearanceComputer.ClearanceLimit limit = comp.findEdge(from.getLocation(), direction);
         return limit.getLocation();
+    }
+
+    public static Set<Vector2D> eightDirections(Vector2D base) {
+        return new HashSet<Vector2D>() {{
+            add(new Vector2D(base.getX(), base.getY()));
+            add(new Vector2D(-base.getX(), -base.getY()));
+            add(new Vector2D(-base.getY(), base.getX()));
+            add(new Vector2D(base.getY(), -base.getX()));
+
+            add(new Vector2D(base.getX() - base.getY(), base.getY() + base.getX()));
+            add(new Vector2D(-base.getX() - base.getY(), -base.getY() + base.getX()));
+            add(new Vector2D(base.getX() + base.getY(), base.getY() - base.getX()));
+            add(new Vector2D(-base.getX() + base.getY(), -base.getY() - base.getX()));
+        }};
     }
 
 }

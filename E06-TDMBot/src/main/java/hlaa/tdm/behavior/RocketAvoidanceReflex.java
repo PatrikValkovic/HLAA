@@ -6,7 +6,7 @@ import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.utils.Navigation;
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.Set;
 import math.geom2d.Vector2D;
 
 public class RocketAvoidanceReflex extends BaseReflex {
@@ -56,45 +56,26 @@ public class RocketAvoidanceReflex extends BaseReflex {
 
 
             // decide escape direction
-            Vector2D[] escapeDirections = new Vector2D[]{
-                    new Vector2D(botIntersectionDirection.x, botIntersectionDirection.y),
-                    new Vector2D(-botIntersectionDirection.x, -botIntersectionDirection.y),
-                    new Vector2D(-botIntersectionDirection.y, botIntersectionDirection.x),
-                    new Vector2D(botIntersectionDirection.y, -botIntersectionDirection.x),
-
-                    new Vector2D(
-                            botIntersectionDirection.x - botIntersectionDirection.y,
-                            botIntersectionDirection.y + botIntersectionDirection.x
-                    ),
-                    new Vector2D(
-                            -botIntersectionDirection.x - botIntersectionDirection.y,
-                            -botIntersectionDirection.y + botIntersectionDirection.x
-                    ),
-                    new Vector2D(
-                            botIntersectionDirection.x + botIntersectionDirection.y,
-                            botIntersectionDirection.y - botIntersectionDirection.x
-                    ),
-                    new Vector2D(
-                            -botIntersectionDirection.x + botIntersectionDirection.y,
-                            -botIntersectionDirection.y - botIntersectionDirection.x
-                    ),
-            };
+            Set<Vector2D> escapeDirections = Navigation.eightDirections(new Vector2D(
+                botIntersectionDirection.x, botIntersectionDirection.y
+            ));
 
             // compute best escape direction
             Vector2D escapeDirection =
-                    Stream.of(escapeDirections)
-                          .max(Comparator.comparingDouble(direction -> {
-                              double escapeDistance = Navigation.navMeshRayCastDistance(_bot.getNavMeshModule(), _bot.getInfo(), direction);
-                              escapeDistance = Math.min(escapeDistance, 400.0);
-                              Location escapeResult = _bot.getInfo().getLocation().add(
-                                      new Location(direction.getX(), direction.getY(), 0).getNormalized().scale(escapeDistance)
-                              );
-                              double utility = escapeResult.getDistance(rocketIntersection) +
-                                      Math.sqrt(projectileOrigin.getDistance(escapeResult));
-                              System.out.println("Escape " + direction + " with utility " + utility);
-                              return utility;
-                          }))
-                          .get();
+                    escapeDirections
+                            .stream()
+                            .max(Comparator.comparingDouble(direction -> {
+                                double escapeDistance = Navigation.navMeshRayCastDistance(_bot.getNavMeshModule(), _bot.getInfo(), direction);
+                                escapeDistance = Math.min(escapeDistance, 400.0);
+                                Location escapeResult = _bot.getInfo().getLocation().add(
+                                        new Location(direction.getX(), direction.getY(), 0).getNormalized().scale(escapeDistance)
+                                );
+                                double utility = escapeResult.getDistance(rocketIntersection) +
+                                        Math.sqrt(projectileOrigin.getDistance(escapeResult));
+                                System.out.println("Escape " + direction + " with utility " + utility);
+                                return utility;
+                            }))
+                            .get();
             Location toLocation = Navigation.navMeshRayCast(_bot.getNavMeshModule(), _bot.getInfo(), escapeDirection);
 
 

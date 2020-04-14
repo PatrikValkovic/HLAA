@@ -12,31 +12,8 @@ import hlaa.tdm.utils.Navigation;
 import hlaa.tdm.utils.WeaponPrefs;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 public class CombatBehavior extends BaseBehavior {
-
-    @AllArgsConstructor
-    @RequiredArgsConstructor
-    public static class WeaponPref {
-        @Getter
-        @NonNull
-        private double priorityMean;
-        @Getter
-        @NonNull
-        private double priorityStd;
-        @Getter
-        @NonNull
-        private ItemType weapon;
-        @Getter
-        @NonNull
-        private boolean primaryMode;
-        @Getter
-        private double priority = 1.0;
-    }
 
     private static final double ROCKET_MINUS = 40.0;
     private final Cooldown _sniper_cooldown = new Cooldown(2000);
@@ -56,22 +33,19 @@ public class CombatBehavior extends BaseBehavior {
 
     @Override
     public boolean isFiring() {
-        if(_bot.getPlayers().getVisiblePlayers().size() == 0){
-            _bot.getShoot().stopShooting();
-        }
-
-        return _bot.getPlayers().getVisiblePlayers().size() > 0;
+        return _bot.getPlayers().getVisibleEnemies().size() > 0;
     }
 
     @Override
     public void execute() {
-        _bot.getNavigation().stopNavigation();
+        // query values
         Location myLocation = _bot.getInfo().getLocation();
-        Player opponent = _bot.getPlayers().getNearestVisiblePlayer();
+        Player opponent = _bot.getPlayers().getNearestVisibleEnemy();
         Location opponentLocation = opponent.getLocation();
         double playerDistance = myLocation.getDistance(opponentLocation);
         _bot.getLog().info("See player " + opponent.getName() + " " + playerDistance + " away");
 
+        // do not query lighting gun if is cool down
         Set<ItemType> exception = new HashSet<>();
         if(!_sniper_cooldown.tryUse()) {
             //System.out.println("Exception sniper");
@@ -79,9 +53,11 @@ public class CombatBehavior extends BaseBehavior {
             exception.add(UT2004ItemType.LIGHTNING_GUN);
         }
 
-        WeaponPref pref = Inventory.bestWeaponForDistance(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, playerDistance, exception);
+        // decide which weapon to use
+        WeaponPrefs.WeaponPref pref = Inventory.bestWeaponForDistance(_bot.getWeaponry(), WeaponPrefs.WEAPON_PREFS, playerDistance, exception);
         _bot.getLog().info("Decided for " + pref.getWeapon().getName() + " using " + (pref.isPrimaryMode() ? "primary" : "secondary"));
 
+        // handle safe rocket shooting
         Location shootTarget = opponentLocation;
         if(pref.getWeapon().equals(UT2004ItemType.ROCKET_LAUNCHER)){
             shootTarget = shootTarget.sub(new Location(0,0,ROCKET_MINUS));
@@ -93,11 +69,14 @@ public class CombatBehavior extends BaseBehavior {
             }
         }
 
-        _bot.getShoot().shoot(
-                _bot.getWeaponry().getWeapon(pref.getWeapon()),
-                pref.isPrimaryMode(),
-                shootTarget
-        );
+        // fire
+        _bot.getWeaponry().changeWeapon(pref.getWeapon());
+        if (_bot.getWeaponry().getCurrentWeapon().getType().equals(pref.getWeapon()))
+            _bot.getShoot().shoot(
+                    _bot.getWeaponry().getWeapon(pref.getWeapon()),
+                    pref.isPrimaryMode(),
+                    shootTarget
+            );
     }
 
     @Override

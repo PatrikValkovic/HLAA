@@ -45,7 +45,7 @@ public class SingleBot extends UT2004BotTCController<UT2004Bot> {
     @Override
     protected void initializeModules(UT2004Bot bot) {
     	super.initializeModules(bot);
-    	levelGeometryModule.setAutoLoad(false);
+    	levelGeometryModule.setAutoLoad(true);
     	log.setLevel(Level.ALL);
     }
 

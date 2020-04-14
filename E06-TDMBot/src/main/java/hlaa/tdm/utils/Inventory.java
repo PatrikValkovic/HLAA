@@ -5,7 +5,6 @@ import cz.cuni.amis.pogamut.ut2004.agent.module.sensomotoric.Weaponry;
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.AgentInfo;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
-import hlaa.tdm.behavior.CombatBehavior;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jfree.chart.ChartFactory;
@@ -71,9 +70,9 @@ public class Inventory {
         return 1.0 / (std * Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * Math.pow((val - mean) / std, 2.0));
     }
 
-    public static void showDistributions(List<CombatBehavior.WeaponPref> prefs) {
+    public static void showDistributions(List<WeaponPrefs.WeaponPref> prefs) {
         TimeSeriesCollection dataset = new TimeSeriesCollection();
-        for (CombatBehavior.WeaponPref pref : prefs) {
+        for (WeaponPrefs.WeaponPref pref : prefs) {
             TimeSeries series = new TimeSeries(pref.getWeapon().getName());
             for (int i = 0; i < 3000; i++) {
                 series.add(
@@ -95,7 +94,7 @@ public class Inventory {
         f.setVisible(true);
     }
 
-    public static double getWeaponStrengthForDistance(Weaponry weaponry, List<CombatBehavior.WeaponPref> weaponPrefs, double distance) {
+    public static double getWeaponStrengthForDistance(Weaponry weaponry, List<WeaponPrefs.WeaponPref> weaponPrefs, double distance) {
         return weaponPrefs.stream()
                           .filter(w -> canUseWeapon(weaponry, w.getWeapon()))
                           .mapToDouble(w -> normalDistribution(w.getPriorityMean(), w.getPriorityStd(), distance) * w.getPriority())
@@ -103,11 +102,11 @@ public class Inventory {
                           .orElse(0.0);
     }
 
-    public static CombatBehavior.WeaponPref bestWeaponForDistance(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance) {
+    public static WeaponPrefs.WeaponPref bestWeaponForDistance(Weaponry available, List<WeaponPrefs.WeaponPref> weaponPrefs, double distance) {
         return bestWeaponForDistance(available, weaponPrefs, distance, new HashSet<>());
     }
 
-    public static CombatBehavior.WeaponPref bestWeaponForDistance(Weaponry available, List<CombatBehavior.WeaponPref> weaponPrefs, double distance, Set<ItemType> except) {
+    public static WeaponPrefs.WeaponPref bestWeaponForDistance(Weaponry available, List<WeaponPrefs.WeaponPref> weaponPrefs, double distance, Set<ItemType> except) {
         return weaponPrefs.stream()
                           .filter(i -> available.hasWeapon(i.getWeapon()))
                           .filter(i -> !except.contains(i.getWeapon()))
@@ -185,7 +184,7 @@ public class Inventory {
         List<Double> distances
                 = getUsableWeapons(weaponry).stream()
                                             .flatMap(w -> WeaponPrefs.WEAPON_PREFS.stream().filter(pref -> pref.getWeapon().equals(w)))
-                                            .map(CombatBehavior.WeaponPref::getPriorityMean)
+                                            .map(WeaponPrefs.WeaponPref::getPriorityMean)
                                             .collect(Collectors.toList());
         distances.add(range - currentDistance);
         distances.add(range + currentDistance);
