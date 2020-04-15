@@ -1,6 +1,7 @@
 package hlaa.tdm.utils;
 
 import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
+import cz.cuni.amis.pogamut.base.agent.navigation.IPathFuture;
 import cz.cuni.amis.pogamut.base.agent.navigation.impl.PathFuture;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
@@ -13,7 +14,6 @@ import cz.cuni.amis.pogamut.ut2004.agent.navigation.navmesh.pathfollowing.NavMes
 import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import java.util.*;
-import java.util.stream.Collectors;
 import math.geom2d.Vector2D;
 
 public class Navigation {
@@ -72,10 +72,27 @@ public class Navigation {
         return nav.getPathPlanner().computePath(from, to).get() != null;
     }
 
-    public static void navigateThrough(NavMeshNavigation nav, List<? extends ILocated> points){
-        PathFuture<ILocated> pathFuture = new PathFuture<>(points.get(0), points.get(points.size()-1));
-        pathFuture.setResult(points.stream().map(n -> (ILocated)n.getLocation()).collect(Collectors.toList()));
-        nav.getPathExecutor().followPath(pathFuture);
+    public static PathFuture<ILocated> pathThrough(NavMeshNavigation nav, List<? extends ILocated> points, ILocated botLocation){
+        nav.getPathExecutor().stop();
+        if(points == null || points.size() == 0){
+            nav.getLog().warning("Path for navigate through is not valid");
+            return new PathFuture<>(botLocation, botLocation);
+        }
+
+        List<ILocated> finalPath = new ArrayList<>();
+        finalPath.addAll(nav.getPathPlanner().computePath(botLocation, points.get(0)).get());
+        for(int i=1;i<points.size();i++){
+            IPathFuture<ILocated> path = nav.getPathPlanner().computePath(points.get(i-1), points.get(i));
+            finalPath.addAll(path.get());
+        }
+
+        PathFuture<ILocated> pathFuture = new PathFuture<>(finalPath.get(0), finalPath.get(finalPath.size()-1));
+        pathFuture.setResult(finalPath);
+        return pathFuture;
+    }
+
+    public static void navigateThrough(NavMeshNavigation nav, List<? extends ILocated> points, ILocated botLocation){
+
     }
 
     public static double directDistance(ILocated first, ILocated second){

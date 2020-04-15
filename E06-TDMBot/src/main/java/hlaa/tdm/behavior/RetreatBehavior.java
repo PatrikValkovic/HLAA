@@ -1,7 +1,6 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
-import cz.cuni.amis.pogamut.ut2004.bot.impl.UT2004BotModuleController;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.UT2004ItemType;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Player;
@@ -27,12 +26,12 @@ public class RetreatBehavior extends BaseBehavior {
 
     @Override
     public boolean isFiring() {
-        return _bot.getPlayers().getVisiblePlayers().size() > 0;
+        return _bot.getPlayers().getVisibleEnemies().size() > 0;
     }
 
     @Override
     public void execute() {
-        Player opponent = _bot.getPlayers().getNearestVisiblePlayer();
+        Player opponent = _bot.getPlayers().getNearestVisibleEnemy();
         Location opponentLocation = opponent.getLocation();
 
         Comparator<NavPoint> coverPointsComparator = Comparator.comparingDouble(point ->
@@ -77,7 +76,7 @@ public class RetreatBehavior extends BaseBehavior {
         _bot.getShoot().shoot(_bot.getWeaponry().getWeapon(UT2004ItemType.SHIELD_GUN), false, opponentLocation);
         _bot.getNavigation().setFocus(opponentLocation);
 
-        // go awway
+        // go away
         if(!_alreadyJumped) {
             _bot.getMove().dodge(toGo.getLocation().sub(_bot.getInfo().getLocation()), true);
             _alreadyJumped = true;

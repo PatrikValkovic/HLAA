@@ -245,6 +245,14 @@ public class EnemyPositionKnowledge {
                 .get();
     }
 
+    public double getCumulativeProbAtNavpoint(NavPoint p) {
+        int navpointIndex = _navpointToIndex.get(p.getId());
+        return _estimations.values()
+                           .stream()
+                           .mapToDouble(helper -> helper.positionEstimation.getAsDouble(0, navpointIndex))
+                           .sum();
+    }
+
     public double getMaxProb() {
         return getProbAtNavpoint(getPointWithMaxProb());
     }

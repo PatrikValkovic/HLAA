@@ -9,8 +9,8 @@ import java.util.Collection;
 
 public class CoverIPFMavView implements IPFMapView<NavPoint> {
 
-    private static final double COST_WEIGHTS = 5000.0;
-    private static final double LOG_MULTIPLIER = 0.01;
+    private static final double COST_WEIGHTS = 6000.0;
+    private static final double EXP_BASE = 0.998;
 
     private final Visibility _visibility;
     private KnowledgeBase _knowledge;
@@ -27,16 +27,16 @@ public class CoverIPFMavView implements IPFMapView<NavPoint> {
 
     @Override
     public int getNodeExtraCost(NavPoint navPoint, int i) {
-        return (int)Math.round(_visibility.getVisibleNavPointsFrom(navPoint.getLocation())
-                          .stream()
-                          .mapToDouble(p -> {
-                                return (10 - Math.log(LOG_MULTIPLIER * p.getLocation().getDistance(navPoint.getLocation()) + 0.01))
-                                        *
-                                        _knowledge.getEnemyPositionsKnowledge().getProbAtNavpoint(p)
-                                        *
-                                        COST_WEIGHTS;
-                          })
-                          .sum());
+        return (int) Math.round(
+                _visibility.getVisibleNavPointsFrom(navPoint)
+                           .stream()
+                           .mapToDouble(p -> {
+                               double distance = Navigation.directDistance(navPoint, p);
+                               double prob = _knowledge.getEnemyPositionsKnowledge().getCumulativeProbAtNavpoint(p);
+                               return Math.pow(EXP_BASE, distance) * prob * COST_WEIGHTS;
+                           })
+                           .sum()
+        );
     }
 
     @Override
