@@ -178,4 +178,10 @@ public class Navigation {
         }};
     }
 
+    public static Location getClosest(NavMeshNavigation nav, ILocated from, List<Location> locations) {
+        return locations.stream()
+                        .min(Comparator.comparingDouble(l -> Navigation.distanceBetween(nav, from, l)))
+                        .get();
+    }
+
 }

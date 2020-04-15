@@ -14,6 +14,7 @@ public class KnowledgeBase {
     private final AllyPositionsKnowledge _alliesPosition;
     private final EnemyPositionKnowledge _enemyPosition;
     private final FirepowerConcentrationKnowledge _firepower;
+    private final LockingKnowledge _locking;
 
 
     public KnowledgeBase(UT2004BotTCController bot) {
@@ -24,6 +25,7 @@ public class KnowledgeBase {
         _alliesPosition = new AllyPositionsKnowledge(bot);
         _enemyPosition = new EnemyPositionKnowledge(bot);
         _firepower = new FirepowerConcentrationKnowledge(bot);
+        _locking = new LockingKnowledge(_alliesPosition);
     }
 
     public void updateKnowledge() {
@@ -32,6 +34,7 @@ public class KnowledgeBase {
         _alliesPosition.update();
         _enemyPosition.update();
         _firepower.update();
+        _locking.update();
     }
 
     public void reset() {
@@ -40,6 +43,7 @@ public class KnowledgeBase {
         _alliesPosition.reset();
         _enemyPosition.reset();
         _firepower.reset();
+        _locking.reset();
     }
 
     public ItemSpawnKnowledge getItemSpawnedKnowledge(){
@@ -64,6 +68,10 @@ public class KnowledgeBase {
 
     public FirepowerConcentrationKnowledge getFirepowerConcentrationKnowledge() {
         return _firepower;
+    }
+
+    public LockingKnowledge getLockingKnowledge() {
+        return _locking;
     }
 
 }
