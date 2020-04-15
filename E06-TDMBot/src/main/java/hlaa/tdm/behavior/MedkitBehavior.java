@@ -8,6 +8,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoin
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
 import hlaa.tdm.utils.CoverIPFMavView;
+import hlaa.tdm.utils.DrawingColors;
 import hlaa.tdm.utils.Inventory;
 import hlaa.tdm.utils.Navigation;
 import java.util.ArrayList;
@@ -15,10 +16,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import static hlaa.tdm.utils.DrawingColors.DRAW;
 import static hlaa.tdm.utils.DrawingColors.MEDKIT_PATH;
 
 public class MedkitBehavior extends BaseBehavior {
-    private static final boolean DRAW = true;
     private final int EVERY_NAVPOINT = 4;
     private final CoverIPFMavView _mapview;
 
@@ -96,7 +97,7 @@ public class MedkitBehavior extends BaseBehavior {
         IPathFuture<ILocated> realPath = Navigation.pathThrough(_bot.getNMNav(), navigateThrough, _bot.getInfo());
 
         //draw path
-        if (true) {
+        if (DrawingColors.DRAW) {
             List<ILocated> tmp = realPath.get();
             for (int i = 1; i < tmp.size(); i++){
                 _bot.getDraw().drawLine(MEDKIT_PATH, tmp.get(i-1), tmp.get(i));

@@ -44,7 +44,7 @@ public class DodgeReflex extends BaseReflex {
 
             ILocated dodgeTo = (ILocated)path.get(index);
 
-            if (true) {
+            if (DrawingColors.DRAW) {
                 _bot.getDraw().drawCube(DrawingColors.NEXT_NAVIGATION_POINT, dodgeTo, 15.0);
                 //_bot.getLog().info("Height difference " + Math.abs(dodgeTo.getLocation().z - _bot.getInfo().getLocation().z));
 

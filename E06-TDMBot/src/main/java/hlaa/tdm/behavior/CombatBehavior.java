@@ -40,7 +40,7 @@ public class CombatBehavior extends BaseBehavior {
     public void execute() {
         // query values
         Location myLocation = _bot.getInfo().getLocation();
-        Player opponent = _bot.getPlayers().getNearestVisibleEnemy();
+        Player opponent = _knowledge.getFirepowerConcentrationKnowledge().getTargetEnemy();
         Location opponentLocation = opponent.getLocation();
         double playerDistance = myLocation.getDistance(opponentLocation);
         _bot.getLog().info("See player " + opponent.getName() + " " + playerDistance + " away");

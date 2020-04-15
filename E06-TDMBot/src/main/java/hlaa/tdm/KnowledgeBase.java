@@ -2,6 +2,7 @@ package hlaa.tdm;
 
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.knowledge.*;
+import hlaa.tdm.utils.DrawingColors;
 
 public class KnowledgeBase {
 
@@ -12,6 +13,7 @@ public class KnowledgeBase {
     private final OthersPickingKnowledge _othersPicking;
     private final AllyPositionsKnowledge _alliesPosition;
     private final EnemyPositionKnowledge _enemyPosition;
+    private final FirepowerConcentrationKnowledge _firepower;
 
 
     public KnowledgeBase(UT2004BotTCController bot) {
@@ -21,13 +23,15 @@ public class KnowledgeBase {
         _othersPicking = new OthersPickingKnowledge(bot, _itemSpawn);
         _alliesPosition = new AllyPositionsKnowledge(bot);
         _enemyPosition = new EnemyPositionKnowledge(bot);
+        _firepower = new FirepowerConcentrationKnowledge(bot);
     }
 
     public void updateKnowledge() {
-        _bot.getDraw().clearAll();
+        if(DrawingColors.DRAW) _bot.getDraw().clearAll();
         _itemSpawn.update();
         _alliesPosition.update();
         _enemyPosition.update();
+        _firepower.update();
     }
 
     public void reset() {
@@ -35,6 +39,7 @@ public class KnowledgeBase {
         _othersPicking.reset();
         _alliesPosition.reset();
         _enemyPosition.reset();
+        _firepower.reset();
     }
 
     public ItemSpawnKnowledge getItemSpawnedKnowledge(){
@@ -55,6 +60,10 @@ public class KnowledgeBase {
 
     public EnemyPositionKnowledge getEnemyPositionsKnowledge() {
         return _enemyPosition;
+    }
+
+    public FirepowerConcentrationKnowledge getFirepowerConcentrationKnowledge() {
+        return _firepower;
     }
 
 }

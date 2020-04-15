@@ -65,8 +65,10 @@ public class CombatMovementBehaviour extends BaseBehavior {
             return;
 
         Location loc = optLocation.get();
-        _bot.getLog().info("Combat move to " + loc);
-        _bot.getDraw().drawLine(DrawingColors.COMBAT_MOVEMENT, _bot.getInfo(), loc);
-        _bot.getMove().dodge(loc.sub(_bot.getInfo().getLocation()), false);
+        if (DrawingColors.DRAW) {
+            _bot.getLog().info("Combat move to " + loc);
+            _bot.getDraw().drawLine(DrawingColors.COMBAT_MOVEMENT, _bot.getInfo(), loc);
+            _bot.getMove().dodge(loc.sub(_bot.getInfo().getLocation()), false);
+        }
     }
 }

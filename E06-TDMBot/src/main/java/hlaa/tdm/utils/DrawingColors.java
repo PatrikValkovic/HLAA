@@ -4,6 +4,8 @@ import java.awt.*;
 
 public class DrawingColors {
 
+    public static boolean DRAW = false;
+
     public static Color COMBAT_MOVEMENT = new Color(255, 255, 255);
 
     public static Color PURSUE_NAVPOINT = new Color(30, 205, 49);

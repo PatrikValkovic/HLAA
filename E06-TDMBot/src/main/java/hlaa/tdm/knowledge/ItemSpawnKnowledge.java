@@ -6,6 +6,7 @@ import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.messages.TCDontSeeItem;
 import hlaa.tdm.messages.TCSeeItem;
+import hlaa.tdm.utils.DrawingColors;
 import hlaa.tdm.utils.Navigation;
 import hlaa.tdm.utils.SpawnItemHelper;
 import java.time.Instant;
@@ -16,8 +17,6 @@ import static hlaa.tdm.utils.DrawingColors.SPAWN_ITEM_DONTSEE;
 import static hlaa.tdm.utils.DrawingColors.SPAWN_ITEM_SEE;
 
 public class ItemSpawnKnowledge {
-    private static final boolean DRAW = true;
-
     private final UT2004BotTCController _bot;
     private final Map<UnrealId, SpawnItemHelper> _spawnedItems;
 
@@ -58,7 +57,7 @@ public class ItemSpawnKnowledge {
             dontSeeItems.removeAll(seeItems);
 
             // draw lines to spawned (pink) and not spawned (purple) items.
-            if(DRAW){
+            if(DrawingColors.DRAW){
                 seeItems.forEach(item -> _bot.getDraw().drawLine(SPAWN_ITEM_SEE, _bot.getInfo(), item.getLocation()));
                 dontSeeItems.forEach(item -> _bot.getDraw().drawLine(SPAWN_ITEM_DONTSEE, _bot.getInfo(), item.getLocation()));
             }

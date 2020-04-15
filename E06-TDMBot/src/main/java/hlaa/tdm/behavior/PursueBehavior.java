@@ -26,7 +26,6 @@ public class PursueBehavior extends BaseBehavior {
 
     @Override
     public void execute() {
-        boolean draw = true;
         // get point to navigate
         NavPoint p = _knowledge.getEnemyPositionsKnowledge().getPointWithMaxProb();
         while(!Navigation.canReachNavpoint(_bot.getNMNav(), _bot.getInfo().getLocation(), p.getLocation())) {
@@ -39,7 +38,7 @@ public class PursueBehavior extends BaseBehavior {
         _bot.getNMNav().navigate(p);
 
         //draw point
-        if(draw){
+        if(DrawingColors.DRAW){
             _bot.getDraw().drawLine(
                     DrawingColors.PURSUE_NAVPOINT,
                     _bot.getInfo().getLocation(),
@@ -50,7 +49,7 @@ public class PursueBehavior extends BaseBehavior {
         //look at the point if visible
         if(Navigation.canSeeNavpoint(_bot, p)){
             _bot.getNavigation().setFocus(p);
-            if(draw){
+            if(DrawingColors.DRAW){
                 _bot.getDraw().drawLine(PURSUE_VISIBLE_NAVPOINT, _bot.getInfo().getLocation(), p.getLocation().add(new Location(0,0,10)));
             }
         }
