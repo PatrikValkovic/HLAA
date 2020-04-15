@@ -191,7 +191,7 @@ public class SingleBot extends UT2004BotTCController<UT2004Bot> {
     	new UT2004BotRunner(SingleBot.class, SingleBot.class.getSimpleName())
 				.setMain(true)
 				.setLogLevel(Level.WARNING)
-				.startAgents(1);
+				.startAgents(2);
     }
     
 }

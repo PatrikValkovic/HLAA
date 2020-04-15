@@ -127,7 +127,7 @@ public class Navigation {
             processed.add(node);
         }
 
-        List<NavPoint> finalPath = new ArrayList<NavPoint>(tempPath.size());
+        List<NavPoint> finalPath = new ArrayList<>(tempPath.size());
 
         while (!tempPath.empty()){
             finalPath.add(tempPath.pop());

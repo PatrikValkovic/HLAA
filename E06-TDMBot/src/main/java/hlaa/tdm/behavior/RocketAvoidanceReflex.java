@@ -72,7 +72,7 @@ public class RocketAvoidanceReflex extends BaseReflex {
                                 );
                                 double utility = escapeResult.getDistance(rocketIntersection) +
                                         Math.sqrt(projectileOrigin.getDistance(escapeResult));
-                                System.out.println("Escape " + direction + " with utility " + utility);
+                                //System.out.println("Escape " + direction + " with utility " + utility);
                                 return utility;
                             }))
                             .get();

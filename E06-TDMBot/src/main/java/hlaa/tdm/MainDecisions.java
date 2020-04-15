@@ -34,14 +34,14 @@ public class MainDecisions implements IBehaviorProvider {
 
     @Override
     public IBehavior get() {
-        if(_bot.getPlayers().getNearestVisiblePlayer() != null){
+        if(_bot.getPlayers().getNearestVisibleEnemy() != null){
             _pursuitHeatup.heat();
             if(_bot.getInfo().getHealth() < 20)
                 return _retreat;
             if(Inventory.getWeaponStrengthForDistance(
                     _bot.getWeaponry(),
                     WeaponPrefs.WEAPON_PREFS,
-                    Navigation.directDistance(_bot, _bot.getPlayers().getNearestVisiblePlayer().getLocation())) < 0.0025)
+                    Navigation.directDistance(_bot, _bot.getPlayers().getNearestVisibleEnemy().getLocation())) < 0.0025)
                 return _retreat;
             return _combat;
         }
