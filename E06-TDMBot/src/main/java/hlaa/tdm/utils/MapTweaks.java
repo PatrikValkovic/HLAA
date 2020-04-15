@@ -37,6 +37,10 @@ public class MapTweaks {
 	// ======================
 	
 	private static void tweakDMDEIronicFE(NavigationGraphBuilder navBuilder) {
+		navBuilder.createSimpleEdge("PathNode47", "PathNode46");
+		navBuilder.modifyEdge("PathNode47", "PathNode46").setDoubleJump();
+		navBuilder.createSimpleEdge("PathNode49", "PathNode48");
+		navBuilder.modifyEdge("PathNode49", "PathNode48").setDoubleJump();
 	}
 
 	// ======================

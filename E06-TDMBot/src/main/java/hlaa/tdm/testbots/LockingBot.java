@@ -16,8 +16,10 @@ import hlaa.tdm.behavior.BehaviorManager;
 import hlaa.tdm.behavior.LockingBehavior;
 import hlaa.tdm.messages.TCAllyLocation;
 import hlaa.tdm.messages.TCWantToLock;
+import hlaa.tdm.utils.MapTweaks;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import static hlaa.tdm.TDMBot.UPDATE_NAVMESH;
 
 /**
  * TDM BOT TEMPLATE CLASS
@@ -27,6 +29,7 @@ import java.util.logging.Level;
 public class LockingBot extends UT2004BotTCController<UT2004Bot> {
 
 	private static AtomicInteger BOT_COUNT = new AtomicInteger(0);
+	private int botInstance;
 
 	private KnowledgeBase _knowledge;
 	private BehaviorManager _behavior;
@@ -55,7 +58,7 @@ public class LockingBot extends UT2004BotTCController<UT2004Bot> {
     	// IT IS FORBIDDEN BY COMPETITION RULES TO CHANGE DESIRED SKILL TO DIFFERENT NUMBER THAN 6
     	// IT IS FORBIDDEN BY COMPETITION RULES TO ALTER ANYTHING EXCEPT NAME & SKIN VIA INITIALIZE COMMAND
 		// Change the name of your bot, e.g., Jakub Gemrot would rewrite this to: targetName = "JakubGemrot"
-		int botInstance = BOT_COUNT.getAndIncrement();
+		botInstance = BOT_COUNT.getAndIncrement();
 		String targetName = LockingBot.class.getSimpleName() + botInstance;
 		int targetTeam = AgentInfo.TEAM_RED;
         return new Initialize().setName(targetName)
@@ -64,6 +67,14 @@ public class LockingBot extends UT2004BotTCController<UT2004Bot> {
 							   .setDesiredSkill(6);
     }
 
+	/**
+	 * This is a place where you should use map tweaks, i.e., patch original Navigation Graph that comes from UT2004.
+	 */
+	@Override
+	public void mapInfoObtained() {
+		MapTweaks.tweak(navBuilder);
+		if (botInstance == 0) navMeshModule.setReloadNavMesh(UPDATE_NAVMESH);
+	}
 
 
 

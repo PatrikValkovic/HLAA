@@ -19,4 +19,6 @@ public class DrawingColors {
 
     public static Color MEDKIT_PATH = new Color(205, 158, 23);
 
+    public static Color LOCK_LOCATION = new Color(57, 205, 205);
+
 }
