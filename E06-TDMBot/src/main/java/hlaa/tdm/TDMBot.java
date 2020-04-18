@@ -30,7 +30,7 @@ public class TDMBot extends UT2004BotTCController<UT2004Bot> {
 	/**
 	 * If true, all bots will enter RED team... 
 	 */
-	public static final boolean START_BOTS_IN_SINGLE_TEAM = false;
+	public static final boolean START_BOTS_IN_SINGLE_TEAM = true;
 	/**
 	 * How many bots we have started so far; used to split bots into teams.
 	 */
@@ -248,7 +248,7 @@ public class TDMBot extends UT2004BotTCController<UT2004Bot> {
     	// => during the development, please use {@link Starter_Bots} instead to ensure you will leave "1" in here
     	new UT2004BotRunner(TDMBot.class, "TDMBot").setMain(true)
 												   .setLogLevel(Level.WARNING)
-												   .startAgents(8);
+												   .startAgents(1);
     }
     
 }

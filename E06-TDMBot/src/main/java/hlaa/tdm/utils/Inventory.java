@@ -170,9 +170,9 @@ public class Inventory {
     }
 
     public static boolean needShieldPack(AgentInfo info, ItemType type) {
-        return isShield(type) && info.getArmor() < 150;
-        //return UT2004ItemType.Category.SHIELD.getTypes().contains(type) &&
-        //        info.getArmor() < 150;
+        return isShield(type) &&
+                (UT2004ItemType.SHIELD_PACK.equals(type) && info.getArmor() < 50) ||
+                (UT2004ItemType.SUPER_SHIELD_PACK.equals(type) && info.getArmor() < 150);
     }
 
     public static boolean needUDamage(AgentInfo info) {

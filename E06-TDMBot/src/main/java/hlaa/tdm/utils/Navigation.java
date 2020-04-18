@@ -2,7 +2,7 @@ package hlaa.tdm.utils;
 
 import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
 import cz.cuni.amis.pogamut.base.agent.navigation.IPathFuture;
-import cz.cuni.amis.pogamut.base.agent.navigation.impl.PathFuture;
+import cz.cuni.amis.pogamut.base.agent.navigation.impl.PrecomputedPathFuture;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.base3d.worldview.object.Location;
 import cz.cuni.amis.pogamut.ut2004.agent.module.sensor.NavPoints;
@@ -72,11 +72,11 @@ public class Navigation {
         return nav.getPathPlanner().computePath(from, to).get() != null;
     }
 
-    public static PathFuture<ILocated> pathThrough(NavMeshNavigation nav, List<? extends ILocated> points, ILocated botLocation){
+    public static PrecomputedPathFuture<ILocated> pathThrough(NavMeshNavigation nav, List<? extends ILocated> points, ILocated botLocation){
         nav.getPathExecutor().stop();
         if(points == null || points.size() == 0){
             nav.getLog().warning("Path for navigate through is not valid");
-            return new PathFuture<>(botLocation, botLocation);
+            return new PrecomputedPathFuture<>(botLocation, botLocation, new LinkedList<>());
         }
 
         List<ILocated> finalPath = new ArrayList<>();
@@ -86,8 +86,11 @@ public class Navigation {
             finalPath.addAll(path.get());
         }
 
-        PathFuture<ILocated> pathFuture = new PathFuture<>(finalPath.get(0), finalPath.get(finalPath.size()-1));
-        pathFuture.setResult(finalPath);
+        PrecomputedPathFuture<ILocated> pathFuture = new PrecomputedPathFuture<>(
+                finalPath.get(0),
+                finalPath.get(finalPath.size()-1),
+                finalPath
+        );
         return pathFuture;
     }
 

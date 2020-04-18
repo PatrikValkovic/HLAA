@@ -1,16 +1,13 @@
 package hlaa.tdm.behavior;
 
 import cz.cuni.amis.pathfinding.alg.astar.AStarResult;
-import cz.cuni.amis.pogamut.base.agent.navigation.IPathFuture;
+import cz.cuni.amis.pogamut.base.agent.navigation.impl.PrecomputedPathFuture;
 import cz.cuni.amis.pogamut.base3d.worldview.object.ILocated;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.Item;
 import cz.cuni.amis.pogamut.ut2004.communication.messages.gbinfomessages.NavPoint;
 import cz.cuni.amis.pogamut.ut2004.teamcomm.bot.UT2004BotTCController;
 import hlaa.tdm.KnowledgeBase;
-import hlaa.tdm.utils.CoverIPFMavView;
-import hlaa.tdm.utils.DrawingColors;
-import hlaa.tdm.utils.Inventory;
-import hlaa.tdm.utils.Navigation;
+import hlaa.tdm.utils.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -20,8 +17,9 @@ import static hlaa.tdm.utils.DrawingColors.DRAW;
 import static hlaa.tdm.utils.DrawingColors.MEDKIT_PATH;
 
 public class MedkitBehavior extends BaseBehavior {
-    private final int EVERY_NAVPOINT = 4;
+    private final int EVERY_NAVPOINT = 5;
     private final CoverIPFMavView _mapview;
+    private HandmadeNav _navigation;
 
     public MedkitBehavior(UT2004BotTCController bot, KnowledgeBase knowledge) {
         super(bot, knowledge);
@@ -41,16 +39,6 @@ public class MedkitBehavior extends BaseBehavior {
                                                              .anyMatch(i -> Inventory.isHealth(i.getType()));
     }
 
-    private boolean executeTerminationCondition(Item item) {
-        try {
-            return _bot.getNMNav().isNavigating() &&
-                    _bot.getNMNav().getPathExecutor().getPathTo() != null &&
-                    _bot.getNMNav().getPathExecutor().getPathTo().getLocation().equals(item.getLocation());
-        }
-        catch(Exception ignore){}
-        return false;
-    }
-
     @Override
     public void execute() {
         //my navpoint
@@ -68,33 +56,34 @@ public class MedkitBehavior extends BaseBehavior {
 
         if (toPickup == null)
             return;
-
-        if (this.executeTerminationCondition(toPickup) && !DRAW)
+        if (skipCondition(toPickup) && !DRAW){
+            _navigation.navigate(_bot);
             return;
+        }
 
         // find path
-        AStarResult<NavPoint> path = _bot.getAStar().findPath(
+        AStarResult<NavPoint> aStarResult = _bot.getAStar().findPath(
                 myNavpoint,
                 toPickup.getNavPoint(),
                 _mapview
         );
 
         //transform it to path
-        List<NavPoint> p = Navigation.getPath(path);
-        if(p == null){
-           _bot.getLog().warning("No path returned from medkit");
+        List<NavPoint> aStarPath = Navigation.getPath(aStarResult);
+        if(aStarPath == null){
+           _bot.getLog().warning("No path returned for medkit");
                 return;
         }
 
         // use only some navpoints
-        List<ILocated> navigateThrough = IntStream.range(1, p.size())
+        List<ILocated> navigateThrough = IntStream.range(1, aStarPath.size())
                                                   .filter(i -> i % EVERY_NAVPOINT == 0)
-                                                  .mapToObj(p::get)
+                                                  .mapToObj(aStarPath::get)
                                                   .collect(Collectors.toCollection(ArrayList::new));
         navigateThrough.add(toPickup); // include last navpoint
 
         // find the real path
-        IPathFuture<ILocated> realPath = Navigation.pathThrough(_bot.getNMNav(), navigateThrough, _bot.getInfo());
+        PrecomputedPathFuture<ILocated> realPath = Navigation.pathThrough(_bot.getNMNav(), navigateThrough, _bot.getInfo());
 
         //draw path
         if (DrawingColors.DRAW) {
@@ -104,15 +93,23 @@ public class MedkitBehavior extends BaseBehavior {
             }
         }
 
-        if(this.executeTerminationCondition(toPickup))
+        if(skipCondition(toPickup)){
+            _navigation.navigate(_bot);
             return;
+        }
 
         // navigate
-        _bot.getNMNav().getPathExecutor().followPath(realPath);
+        _navigation = new HandmadeNav(realPath.get());
+        _navigation.navigate(_bot);
+    }
+
+    private boolean skipCondition(Item toPickup) {
+        return _navigation != null && _navigation.getTargetLocation().getLocation().equals(toPickup.getLocation()) && !_navigation.isDone();
     }
 
     @Override
     public void terminate() {
+        _navigation = null;
         _bot.getNavigation().stopNavigation();
     }
 }
